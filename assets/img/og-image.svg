@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#14233d"/>
+  <circle cx="1050" cy="120" r="200" fill="#c9a24b" opacity="0.15"/>
+  <g transform="translate(600,250)" text-anchor="middle" font-family="Georgia, serif">
+    <circle r="90" fill="none" stroke="#c9a24b" stroke-width="6"/>
+    <path d="M-40 0 L-10 30 L55 -45" fill="none" stroke="#c9a24b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <text y="160" font-size="64" font-weight="700" fill="#ffffff">Notary Institution</text>
+    <text y="220" font-size="30" fill="#c9a24b" letter-spacing="3">MONROVIA · LIBERIA</text>
+  </g>
+  <text x="600" y="560" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#ffffff" opacity="0.8">Certified · Confidential · Legally Compliant Notarial Services</text>
+</svg>

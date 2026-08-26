@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.notary.com/</loc><priority>1.00</priority></url>
+  <url><loc>https://www.notary.com/about.html</loc><priority>0.80</priority></url>
+  <url><loc>https://www.notary.com/service.html</loc><priority>0.90</priority></url>
+  <url><loc>https://www.notary.com/service-details.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/portfolio-slider.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/portfolio-column-two.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/portfolio-column-three.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/project-details.html</loc><priority>0.60</priority></url>
+  <url><loc>https://www.notary.com/team-one.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/team-two.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/pricing-plan.html</loc><priority>0.80</priority></url>
+  <url><loc>https://www.notary.com/faq.html</loc><priority>0.80</priority></url>
+  <url><loc>https://www.notary.com/testimonial.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/blog-grid-two.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/blog-grid-three.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/blog-standard.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/blog-details.html</loc><priority>0.60</priority></url>
+  <url><loc>https://www.notary.com/contact.html</loc><priority>0.80</priority></url>
+  <url><loc>https://www.notary.com/contact-two.html</loc><priority>0.70</priority></url>
+  <url><loc>https://www.notary.com/request-quote.html</loc><priority>0.90</priority></url>
+  <url><loc>https://www.notary.com/404.html</loc><priority>0.30</priority></url>
+</urlset>
