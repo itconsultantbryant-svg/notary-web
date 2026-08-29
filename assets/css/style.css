@@ -191,6 +191,10 @@ img { max-width: 100%; height: auto; display: block; }
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 1.3rem;
 }
+.header-main .brand-mark img,
+.footer .footer-about .brand .brand-mark img {
+  width: 30px; height: 30px; object-fit: contain; display: block;
+}
 .header-main .brand-text small { display: block; font-family: var(--font-body); font-size: 0.62rem; letter-spacing: 2px; color: var(--gold); font-weight: 600; text-transform: uppercase; }
 
 .navbar .nav-link {
@@ -682,7 +686,7 @@ img { max-width: 100%; height: auto; display: block; }
 .footer a { color: rgba(255,255,255,0.7); }
 .footer a:hover { color: var(--gold); }
 .footer .footer-about .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-.footer .footer-about .brand .brand-mark { width: 44px; height: 44px; background: var(--gold); color: var(--navy); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+.footer .footer-about .brand .brand-mark { width: 44px; height: 44px; background: var(--navy); color: var(--gold); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem; }
 .footer .footer-about .brand span { font-family: var(--font-head); color: #fff; font-size: 1.4rem; font-weight: 700; }
 .footer ul.footer-links { list-style: none; padding: 0; margin: 0; }
 .footer ul.footer-links li { padding: 7px 0; }

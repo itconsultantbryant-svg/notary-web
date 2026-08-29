@@ -4,11 +4,11 @@ Static HTML5 site (Bootstrap 5 + vanilla JS). No build step required.
 
 ## 1. Finalize content (replace placeholders)
 - [ ] **Phone**: replace `+23177xxxxxxxxx` across ALL pages (top bar, footer, contact pages, request form). It appears in `index.html` and every page's top-bar/footer.
-- [ ] **Logo files**: the `.brand-mark` uses a Font Awesome stamp icon. Swap for real light/dark logo PNG/SVG in `assets/img/` if desired.
+- [x] **Logo files**: real `notary_logo.jpeg` was added to `assets/assets/`, processed to a transparent PNG (`assets/img/notary_logo.png`) and wired into the header + footer brand on all 21 pages; favicon switched to `assets/img/favicon.png`. (If you have a vector/hi-res logo, drop it in `assets/img/` and update the two `src`/`href` references.)
 - [ ] **Photos**: all imagery uses `.img-ph` placeholder blocks (navy gradient + icon). Replace with real photos of the office, notaries, documents, etc.
 - [ ] **Fees**: `pricing-plan.html` shows example fees + a "confirm before publishing" note. Replace with verified, legally accurate rates.
 - [ ] **Office hours**: shown in `faq.html` and contact pages — confirm actual hours.
-- [ ] **Team**: `team-one.html` / `team-two.html` use placeholder names. Add real notary names, titles, credentials, and photos (with permission).
+- [ ] **Team**: Hon. Jefferson S. Teah (Head Notary Public) is now featured on About + both team pages with his real biography. The remaining notaries are placeholder names — replace with real staff (with permission) and photos.
 - [ ] **Testimonials**: quotes are sample text. Replace with real, permitted client testimonials.
 - [ ] **Business registration / license number**: add to About / footer if you want it displayed for credibility.
 

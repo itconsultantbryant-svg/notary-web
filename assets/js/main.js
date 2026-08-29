@@ -147,7 +147,7 @@
 
       function showSuccess() {
         msgBox.className = "form-msg alert alert-success mt-3";
-        msgBox.innerHTML = '<i class="fas fa-check-circle me-2"></i> Thank you. Your request has been received — our office will contact you shortly.';
+        msgBox.innerHTML = '<i class="fas fa-check-circle me-2"></i> Thank you. Your request has been received — our office will contact you shortly. For more details Contact our Custormer Service by clicking on the WhatsApp butten';
         form.reset();
         if (submitBtn) submitBtn.disabled = false, (submitBtn.innerHTML = origText);
       }
