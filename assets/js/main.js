@@ -153,7 +153,7 @@
       }
       function showError() {
         msgBox.className = "form-msg alert alert-danger mt-3";
-        msgBox.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Something went wrong. Please try again or email us at info@notary.com.';
+        msgBox.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Something went wrong. Please try again or email us at info@jeffersonteahnotarypublic.com.';
         if (submitBtn) submitBtn.disabled = false, (submitBtn.innerHTML = origText);
       }
 

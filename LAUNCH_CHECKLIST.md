@@ -3,7 +3,7 @@
 Static HTML5 site (Bootstrap 5 + vanilla JS). No build step required.
 
 ## 1. Finalize content (replace placeholders)
-- [ ] **Phone**: replace `+23177xxxxxxxxx` across ALL pages (top bar, footer, contact pages, request form). It appears in `index.html` and every page's top-bar/footer.
+- [x] **Phone**: replaced with `+231770388279` / `+231886767621` across all pages (top bar, footer, contact pages, request form).
 - [x] **Logo files**: real `notary_logo.jpeg` was added to `assets/assets/`, processed to a transparent PNG (`assets/img/notary_logo.png`) and wired into the header + footer brand on all 21 pages; favicon switched to `assets/img/favicon.png`. (If you have a vector/hi-res logo, drop it in `assets/img/` and update the two `src`/`href` references.)
 - [ ] **Photos**: all imagery uses `.img-ph` placeholder blocks (navy gradient + icon). Replace with real photos of the office, notaries, documents, etc.
 - [ ] **Fees**: `pricing-plan.html` shows example fees + a "confirm before publishing" note. Replace with verified, legally accurate rates.
