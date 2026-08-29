@@ -811,3 +811,134 @@ html.no-aos [data-aos] { opacity: 1 !important; transform: none !important; }
   .navbar .has-submenu:hover > .nav-link { color: var(--gold); }
   .navbar .has-submenu > .dropdown-menu { margin-top: 0; }
 }
+
+/* ---------- Hero Slider ---------- */
+.hero-slider {
+  position: relative;
+}
+.hero-slider .swiper-slide {
+  height: auto;
+}
+.hero-slider .hero-content {
+  padding-right: 20px;
+}
+.hero-slider .hero-img-wrap {
+  min-height: 450px;
+}
+.hero-slider .swiper-button-next,
+.hero-slider .swiper-button-prev {
+  color: var(--gold);
+  background: var(--navy);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.hero-slider .swiper-button-next::after,
+.hero-slider .swiper-button-prev::after {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.hero-slider .swiper-button-next:hover,
+.hero-slider .swiper-button-prev:hover {
+  background: var(--gold);
+  color: var(--navy);
+}
+.hero-slider .swiper-pagination-bullet {
+  background: var(--gold);
+  opacity: 0.4;
+}
+.hero-slider .swiper-pagination-bullet-active {
+  opacity: 1;
+  background: var(--gold);
+}
+
+/* ---------- About Slider ---------- */
+.about-slider {
+  position: relative;
+  max-width: 100%;
+}
+.about-slider .swiper-slide {
+  height: auto;
+}
+.about-slider .swiper-button-next,
+.about-slider .swiper-button-prev {
+  color: var(--gold);
+  background: var(--navy);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+}
+.about-slider .swiper-button-next:hover,
+.about-slider .swiper-button-prev:hover {
+  background: var(--gold);
+  color: var(--navy);
+}
+.about-slider .swiper-pagination-bullet {
+  background: var(--gold);
+  opacity: 0.4;
+}
+.about-slider .swiper-pagination-bullet-active {
+  opacity: 1;
+  background: var(--gold);
+}
+
+/* ---------- Appointment Letter Section ---------- */
+.appointment-letter-section .img-ph {
+  border: 4px solid var(--gold);
+  border-radius: var(--radius-lg);
+}
+
+/* ---------- Notable Endorsements Section ---------- */
+.feature-card .img-ph.square {
+  aspect-ratio: 1/1;
+  min-width: 100px;
+  max-width: 100px;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments for hero slider */
+@media (max-width: 991px) {
+  .hero-slider .hero-img-wrap {
+    min-height: 350px;
+    margin-top: 30px;
+  }
+  .hero-slider .hero-content {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-slider .hero-img-wrap {
+    min-height: 300px;
+  }
+  .hero-slider .swiper-button-next,
+  .hero-slider .swiper-button-prev {
+    width: 40px;
+    height: 40px;
+  }
+  .hero-slider .seal-badge {
+    width: 72px;
+    height: 72px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Responsive for endorsements */
+@media (max-width: 767px) {
+  .feature-card .img-ph.square {
+    min-width: 80px;
+    max-width: 80px;
+  }
+  .feature-card .row {
+    flex-direction: column;
+    text-align: center;
+  }
+  .feature-card .col-md-4,
+  .feature-card .col-md-8 {
+    width: 100%;
+  }
+}
