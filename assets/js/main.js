@@ -77,38 +77,6 @@
         breakpoints: { 768: { slidesPerView: 2 }, 992: { slidesPerView: 3 } }
       });
     });
-
-    // Hero slider (index.html)
-    var heroSliders = document.querySelectorAll(".hero-slider");
-    heroSliders.forEach(function (el) {
-      new Swiper(el, {
-        slidesPerView: 1,
-        spaceBetween: 0,
-        loop: true,
-        autoplay: { delay: 6000, disableOnInteraction: false },
-        pagination: { el: el.querySelector(".swiper-pagination"), clickable: true },
-        navigation: {
-          nextEl: el.querySelector(".swiper-button-next"),
-          prevEl: el.querySelector(".swiper-button-prev")
-        }
-      });
-    });
-
-    // About slider (about.html)
-    var aboutSliders = document.querySelectorAll(".about-slider");
-    aboutSliders.forEach(function (el) {
-      new Swiper(el, {
-        slidesPerView: 1,
-        spaceBetween: 0,
-        loop: true,
-        autoplay: { delay: 5000, disableOnInteraction: false },
-        pagination: { el: el.querySelector(".swiper-pagination"), clickable: true },
-        navigation: {
-          nextEl: el.querySelector(".swiper-button-next"),
-          prevEl: el.querySelector(".swiper-button-prev")
-        }
-      });
-    });
   }
 
   /* ---------- Counters ---------- */
@@ -140,25 +108,7 @@
     counters.forEach(function (c) { animateCounter(c); });
   }
 
-  /* ---------- Pricing toggle (Standard / Express) ---------- */
-  var pricingSwitch = document.getElementById("pricingToggle");
-  if (pricingSwitch) {
-    var priceVals = document.querySelectorAll(".price-val");
-    pricingSwitch.addEventListener("change", function () {
-      var express = pricingSwitch.checked;
-      priceVals.forEach(function (p) {
-        p.textContent = express ? p.getAttribute("data-express") : p.getAttribute("data-standard");
-      });
-      document.querySelectorAll(".toggle-label").forEach(function (l) {
-        l.classList.toggle("active", (l.dataset.mode === "express") === express);
-      });
-    });
-    // init labels
-    document.querySelectorAll(".toggle-label").forEach(function (l) {
-      if (l.dataset.mode === "standard") l.classList.add("active");
-    });
-  }
-
+  
   /* ---------- Forms (Formspree-ready) ---------- */
   var forms = document.querySelectorAll("form[data-form]");
   forms.forEach(function (form) {
