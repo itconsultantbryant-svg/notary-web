@@ -205,8 +205,14 @@ async function initPostgres() {
 
 async function getDb() {
   if (db) return db;
-  if (usePostgres()) await initPostgres();
-  else initJsonStore();
+  if (usePostgres()) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is required in production. Add it in Vercel environment variables.");
+    }
+    await initPostgres();
+  } else {
+    initJsonStore();
+  }
   return db;
 }
 
