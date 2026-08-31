@@ -25,19 +25,12 @@ function createApiApp() {
   app.use("/api/cms", cmsRoutes);
   app.use("/api/contact", contactRoutes);
 
-  app.get("/api/health", async (req, res) => {
-    try {
-      const { getDb, usePostgres } = require("./db");
-      await getDb();
-      res.json({
-        ok: true,
-        site: process.env.SITE_URL || "https://www.jeffersonteahnotarypublic.com",
-        db: usePostgres() ? "postgres" : "json"
-      });
-    } catch (err) {
-      console.error("Health check failed:", err);
-      res.status(500).json({ ok: false, error: err.message });
-    }
+  app.get("/api/health", (req, res) => {
+    res.json({
+      ok: true,
+      site: process.env.SITE_URL || "https://www.jeffersonteahnotarypublic.com",
+      db: process.env.DATABASE_URL ? "postgres" : (process.env.VERCEL ? "missing-database-url" : "json")
+    });
   });
 
   app.use((err, req, res, next) => {

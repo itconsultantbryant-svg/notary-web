@@ -10,13 +10,20 @@ const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, "..", "..", "uploads", "documents");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+function getUploadsDir() {
+  const dir = process.env.VERCEL
+    ? path.join("/tmp", "uploads", "documents")
+    : path.join(__dirname, "..", "..", "uploads", "documents");
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch (e) {
+    console.warn("Upload dir init:", e.message);
+  }
+  return dir;
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
+  destination: (req, file, cb) => cb(null, getUploadsDir()),
   filename: (req, file, cb) => {
     const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
     cb(null, `${Date.now()}-${safe}`);

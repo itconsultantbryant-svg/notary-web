@@ -205,10 +205,10 @@ async function initPostgres() {
 
 async function getDb() {
   if (db) return db;
+  if (process.env.VERCEL && !process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is not set in Vercel. Add your Neon connection string in Project Settings → Environment Variables.");
+  }
   if (usePostgres()) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL is required in production. Add it in Vercel environment variables.");
-    }
     await initPostgres();
   } else {
     initJsonStore();

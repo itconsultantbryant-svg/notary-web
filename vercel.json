@@ -31,5 +31,8 @@
       "maxDuration": 30,
       "includeFiles": "server/**"
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   }
 }
