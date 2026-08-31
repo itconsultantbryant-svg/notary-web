@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
-    "init-db": "node scripts/init-db.js"
+    "init-db": "node scripts/init-db.js",
+    "check-deploy": "node scripts/check-deploy.js"
   },
   "engines": {
     "node": ">=18"
@@ -20,6 +21,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "serverless-http": "^4.0.0",
     "uuid": "^11.0.3"
   }
 }

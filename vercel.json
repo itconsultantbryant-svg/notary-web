@@ -1,24 +1,35 @@
 {
   "version": 2,
-  "buildCommand": "npm install",
+  "installCommand": "npm install",
+  "buildCommand": "echo 'Static site + API — no build step'",
   "outputDirectory": ".",
   "framework": null,
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/admin", "destination": "/admin/index.html" }
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/verify", "destination": "/verify.html" }
   ],
   "headers": [
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" }
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],
   "functions": {
     "api/index.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "server/**"
     }
   }
 }
