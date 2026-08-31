@@ -1,7 +1,7 @@
 /* ============================================================
    NOTARY INSTITUTION — main.js
    Interactions: sticky header, mobile submenu, Swiper sliders,
-   AOS, counters, pricing toggle, forms (Formspree-ready).
+   AOS, counters, forms (API + Formspree fallback).
    ============================================================ */
 (function () {
   "use strict";
@@ -129,7 +129,7 @@
 
       function showSuccess() {
         msgBox.className = "form-msg alert alert-success mt-3";
-        msgBox.innerHTML = '<i class="fas fa-check-circle me-2"></i> Thank you. Your request has been received — our office will contact you shortly. For more details Contact our Custormer Service by clicking on the WhatsApp butten';
+        msgBox.innerHTML = '<i class="fas fa-check-circle me-2"></i> Thank you. Your request has been received — our office will contact you shortly. For urgent inquiries, click the WhatsApp button.';
         form.reset();
         if (submitBtn) submitBtn.disabled = false, (submitBtn.innerHTML = origText);
       }
@@ -143,7 +143,43 @@
 
       if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = 'Sending…'; }
 
-      // If a real Formspree/endpoint is configured, POST; otherwise simulate.
+      // Try our API first, then Formspree, then local preview
+      var apiUrl = "/api/contact";
+      var useApi = true;
+
+      if (useApi) {
+        var payload = {};
+        new FormData(form).forEach(function (v, k) { payload[k] = v; });
+        payload.form_type = form.id === "requestForm" || form.closest(".request-card") ? "request" : "contact";
+        fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            if (res.ok) showSuccess();
+            else if (action && action.indexOf("REPLACE_WITH") === -1) {
+              var data = new FormData(form);
+              fetch(action, { method: "POST", body: data, headers: { Accept: "application/json" } })
+                .then(function (r) { return r.ok ? showSuccess() : showError(); })
+                .catch(showError);
+            } else showError();
+          })
+          .catch(function () {
+            if (action && action.indexOf("REPLACE_WITH") === -1) {
+              var data = new FormData(form);
+              fetch(action, { method: "POST", body: data, headers: { Accept: "application/json" } })
+                .then(function (r) { return r.ok ? showSuccess() : showError(); })
+                .catch(showError);
+            } else {
+              setTimeout(showSuccess, 700);
+            }
+          });
+        return;
+      }
+
+      // Legacy Formspree path
       if (action && action.indexOf("REPLACE_WITH") === -1) {
         var data = new FormData(form);
         fetch(action, {

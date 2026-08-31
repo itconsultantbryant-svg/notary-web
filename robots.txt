@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.notary.com/sitemap.xml
+# Block admin from search engines
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://www.jeffersonteahnotarypublic.com/sitemap.xml

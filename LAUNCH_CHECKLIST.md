@@ -1,65 +1,57 @@
 # Notary Institution Website — Launch Checklist
 
-Static HTML5 site (Bootstrap 5 + vanilla JS). No build step required.
+Static HTML5 site + Node.js API (CMS, document verification, admin dashboard).
+
+**Production URL:** https://www.jeffersonteahnotarypublic.com
 
 ## 1. Finalize content (replace placeholders)
-- [x] **Phone**: replaced with `+231770388279` / `+231886767621` across all pages (top bar, footer, contact pages, request form).
-- [x] **Logo files**: real `notary_logo.jpeg` was added to `assets/assets/`, processed to a transparent PNG (`assets/img/notary_logo.png`) and wired into the header + footer brand on all 21 pages; favicon switched to `assets/img/favicon.png`. (If you have a vector/hi-res logo, drop it in `assets/img/` and update the two `src`/`href` references.)
-- [ ] **Photos**: all imagery uses `.img-ph` placeholder blocks (navy gradient + icon). Replace with real photos of the office, notaries, documents, etc.
-- [ ] **Fees**: `pricing-plan.html` shows example fees + a "confirm before publishing" note. Replace with verified, legally accurate rates.
-- [ ] **Office hours**: shown in `faq.html` and contact pages — confirm actual hours.
-- [ ] **Team**: Hon. Jefferson S. Teah (Head Notary Public) is now featured on About + both team pages with his real biography. The remaining notaries are placeholder names — replace with real staff (with permission) and photos.
-- [ ] **Testimonials**: quotes are sample text. Replace with real, permitted client testimonials.
-- [ ] **Business registration / license number**: add to About / footer if you want it displayed for credibility.
+- [x] **Phone**: +231770388279 / +231886767621 across all pages
+- [x] **Logo**: notary_logo.png wired into header + footer
+- [ ] **Photos**: some pages still use SVG scene placeholders — replace with real photos
+- [x] **Pricing removed** — no pricing page on site
+- [ ] **Office hours**: confirm in faq.html and contact pages
+- [x] **Team**: real staff names and photos on team pages
+- [ ] **Testimonials**: replace sample quotes with real client testimonials
+- [ ] **Business registration / license number**: add to About / footer if desired
 
-## 2. Wire up forms (Formspree)
-All forms use `data-form="true"` with `action="https://formspree.io/f/REPLACE_WITH_FORM_ID"`.
-- [ ] Create a free form at https://formspree.io and copy your form ID.
-- [ ] Replace `REPLACE_WITH_FORM_ID` in every `action="..."` (search the repo) with your real ID.
-- Until then, forms show a local "success" message (no email sent) — useful for preview.
-- Newsletter forms use `data-newsletter="true"` and are purely front-end (no backend needed).
+## 2. Forms & Backend
+- [x] **Contact forms** — POST to `/api/contact`, viewable in admin dashboard
+- [x] **Document verification** — `/verify` page + admin document management
+- [x] **CMS** — edit content at `/admin` → Content (CMS)
+- [ ] **Production database** — set `DATABASE_URL` (Neon PostgreSQL) on Vercel
+- [ ] **Change admin password** after first login at `/admin`
 
 ## 3. Google Maps
-- [ ] Contact pages embed `https://www.google.com/maps?q=Bassa+Community+Monrovia+Liberia&output=embed`. For a styled pin, create a Maps API key and use the embed API, or generate a share-embed URL from Google Maps.
+- [x] Contact pages embed Google Maps for Bassa Community, Monrovia
 
 ## 4. Domain, hosting & SSL
-- [ ] Choose hosting (Netlify / Vercel / shared). This is plain static HTML — drag the folder to Netlify or push to GitHub.
-- [ ] Point DNS to hosting; install SSL (HTTPS) — Netlify/Vercel do this automatically.
-- [ ] Replace `https://www.notary.com` in `sitemap.xml` and `robots.txt` with the real domain.
+- [ ] Point DNS for `www.jeffersonteahnotarypublic.com` to Vercel
+- [x] `sitemap.xml` and `robots.txt` updated with real domain
+- [ ] Deploy to Vercel with env vars (see README.md)
+- [ ] Run `npm run init-db` once with production DATABASE_URL
 
 ## 5. SEO & Analytics
-- [ ] Submit `sitemap.xml` to Google Search Console.
-- [ ] Add Google Analytics (or Plausible) snippet to `<head>` of every page.
-- [ ] Verify each page `<title>` and `<meta name="description">` are unique (homepage is done; review secondary pages).
-- [ ] Add real Open Graph image `og-image.jpg` (1200×630 PNG) — currently `og-image.svg` is a placeholder.
+- [x] Sitemap at https://www.jeffersonteahnotarypublic.com/sitemap.xml
+- [x] Canonical URLs, JSON-LD, meta tags on all pages
+- [ ] Submit sitemap to Google Search Console
+- [ ] Add Google Analytics snippet to pages (optional)
+- [ ] Add real Open Graph image (1200×630 PNG)
 
 ## 6. Pre-launch QA
-- [ ] Open in Chrome / Safari / Firefox / Edge.
-- [ ] Test mobile hamburger menu + dropdowns.
-- [ ] Test pricing Standard/Express toggle on homepage + `pricing-plan.html`.
-- [ ] Test testimonial & portfolio sliders.
-- [ ] Click through ALL nav links on every page (no 404s except the intentional 404 page).
-- [ ] Compress images (e.g. TinyPNG) before upload.
-- [ ] Validate contrast/alt text for accessibility.
+- [ ] Test document verification with sample IDs
+- [ ] Test admin login, add document, edit CMS content
+- [ ] Test contact and request forms
+- [ ] Test WhatsApp button
+- [ ] Cross-browser and mobile testing
 
-## File map
-```
-index.html                  Homepage (all 13 sections)
-about.html                  About Us
-service.html                All Services
-service-details.html        Single service detail
-portfolio-slider.html       Our Work — slider
-portfolio-column-two.html   Our Work — 2 col
-portfolio-column-three.html Our Work — 3 col
-project-details.html        Case detail
-team-one.html / team-two.html  Our Notaries (grid / list)
-pricing-plan.html           Pricing & fees + schedule
-faq.html                    FAQ accordion
-testimonial.html            Testimonials grid
-blog-grid-two.html / blog-grid-three.html / blog-standard.html / blog-details.html
-contact.html / contact-two.html   Contact styles 1 & 2
-request-quote.html          Request service form
-404.html                    Not found
-assets/css/style.css        Design system
-assets/js/main.js           Interactions
-```
+## Key URLs
+| URL | Purpose |
+|-----|---------|
+| `/` | Homepage |
+| `/verify` | Public document verification |
+| `/admin` | Staff admin dashboard |
+| `/api/health` | API health check |
+
+## Admin default login (change immediately)
+- Email: `admin@jeffersonteahnotarypublic.com`
+- Password: `Admin@2026!`
