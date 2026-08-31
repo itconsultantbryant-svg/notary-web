@@ -6,7 +6,7 @@
     var body = document.body.getAttribute("data-page");
     if (body) return body;
     var path = window.location.pathname.replace(/^\//, "").replace(/\.html$/, "");
-    if (!path || path === "index") return "index";
+    if (!path || path === "index" || path === "home") return "home";
     return path.split("/")[0];
   }
 

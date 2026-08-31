@@ -7,7 +7,7 @@ const { getSchema } = require("../server/schema");
 
 const CMS_SEED = [
   {
-    slug: "index",
+    slug: "home",
     title: "Reliable Notarial Services You Can Trust | Hon. Jefferson Teah Notary Public Office — Monrovia, Liberia",
     meta_description: "Certified and trusted notarial services in Monrovia, Liberia. Document notarization, affidavits, certified true copies, deed & contract witnessing for individuals, businesses, and institutions.",
     blocks: [
