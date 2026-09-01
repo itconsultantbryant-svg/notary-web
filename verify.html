@@ -166,6 +166,14 @@
     var form = document.getElementById("verifyForm");
     var result = document.getElementById("verifyResult");
     var btn = document.getElementById("verifyBtn");
+    var WA = window.NotaryWhatsApp || { url: function (m) { return "https://wa.me/231770388279?text=" + encodeURIComponent(m); } };
+
+    function esc(s) {
+      if (!s) return "";
+      var d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -175,26 +183,41 @@
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying…';
       result.innerHTML = "";
 
-      fetch("/api/documents/verify/" + encodeURIComponent(id))
+      var visitorParam = window.NotaryVisitorId ? "?visitor_id=" + encodeURIComponent(window.NotaryVisitorId) : "";
+      fetch("/api/documents/verify/" + encodeURIComponent(id) + visitorParam)
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (data.found) {
+          if (data.found && data.pending) {
+            result.innerHTML = '<div class="verify-result error text-center">' +
+              '<div class="verify-icon error"><i class="fas fa-hourglass-half"></i></div>' +
+              '<h4>Pending Verification</h4>' +
+              '<p>' + esc(data.message) + '</p>' +
+              '<a class="btn btn-primary mt-3" href="' + WA.url("Hello, I am checking document ID " + id + " which shows as pending verification.") + '" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact via WhatsApp</a></div>';
+            return;
+          }
+          if (data.found && data.document) {
             var d = data.document;
             var statusClass = d.status === "active" ? "success" : "error";
+            var waMsg = "Hello, I verified document ID " + d.document_id + " online. I need a certified hard copy. Applicant: " + d.applicant_name + ".";
             result.innerHTML = '<div class="verify-result ' + statusClass + '">' +
               '<div class="text-center"><div class="verify-icon ' + statusClass + '"><i class="fas fa-' + (d.status === "active" ? "check-circle" : "exclamation-triangle") + '"></i></div>' +
-              '<h4>' + (d.status === "active" ? "Document Verified" : "Document Found — " + d.status.toUpperCase()) + '</h4></div>' +
-              '<div class="result-row"><span>Document ID</span><strong>' + d.document_id + '</strong></div>' +
-              '<div class="result-row"><span>Applicant</span><strong>' + d.applicant_name + '</strong></div>' +
-              '<div class="result-row"><span>Document Type</span><strong>' + d.document_type + '</strong></div>' +
-              '<div class="result-row"><span>Issue Date</span><strong>' + (d.issue_date || "—") + '</strong></div>' +
-              '<div class="result-row"><span>Expiry Date</span><strong>' + (d.expiry_date || "—") + '</strong></div>' +
-              '<div class="result-row"><span>Status</span><strong>' + d.status.toUpperCase() + '</strong></div>' +
+              '<h4>' + (d.status === "active" ? "Document Verified" : "Document Found — " + esc(d.status.toUpperCase())) + '</h4></div>' +
+              '<div class="result-row"><span>Document ID</span><strong>' + esc(d.document_id) + '</strong></div>' +
+              '<div class="result-row"><span>Applicant</span><strong>' + esc(d.applicant_name) + '</strong></div>' +
+              '<div class="result-row"><span>Document Type</span><strong>' + esc(d.document_type) + '</strong></div>' +
+              '<div class="result-row"><span>Issue Date</span><strong>' + esc(d.issue_date || "—") + '</strong></div>' +
+              '<div class="result-row"><span>Expiry Date</span><strong>' + esc(d.expiry_date || "—") + '</strong></div>' +
+              '<div class="result-row"><span>Registered</span><strong>' + esc(d.registered_at || "—") + '</strong></div>' +
+              '<div class="result-row"><span>Status</span><strong>' + esc(d.status.toUpperCase()) + '</strong></div>' +
+              '<div class="verify-download-notice"><i class="fas fa-lock"></i> <strong>Digital copies are not available for download.</strong> For certified hard copies, please contact our office via WhatsApp.</div>' +
+              (data.notice ? '<p class="mt-2 mb-0" style="font-size:.9rem">' + esc(data.notice) + '</p>' : '') +
+              '<div class="text-center mt-3"><a class="btn btn-primary" href="' + WA.url(waMsg) + '" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Request Hard Copy via WhatsApp</a></div>' +
               '</div>';
           } else {
             result.innerHTML = '<div class="verify-result error text-center">' +
               '<div class="verify-icon error"><i class="fas fa-times-circle"></i></div>' +
-              '<h4>Document Not Found</h4><p>' + data.message + '</p></div>';
+              '<h4>Document Not Found</h4><p>' + esc(data.message) + '</p>' +
+              '<a class="btn btn-outline mt-3" href="' + WA.url("Hello, I tried to verify document ID " + id + " but it was not found. Can you assist?") + '" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact Office</a></div>';
           }
         })
         .catch(function () {

@@ -217,6 +217,37 @@ body {
   font-size: 1rem;
 }
 
+.sidebar-stats {
+  margin: 8px 16px 0;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-stats-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 10px;
+}
+
+.sidebar-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 4px 0;
+}
+
+.sidebar-stat-row strong {
+  color: #fff;
+  font-weight: 600;
+}
+
 .sidebar-footer {
   padding: 16px 20px 20px;
   border-top: 1px solid rgba(255,255,255,.1);
@@ -490,6 +521,86 @@ tr:hover td { background: #fafbfc; }
 .badge-active { background: #d4edda; color: #155724; }
 .badge-expired { background: #f8d7da; color: #721c24; }
 .badge-revoked { background: #fff3cd; color: #856404; }
+.badge-pending { background: #cce5ff; color: #004085; }
+
+.file-info-box {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  font-size: 0.88rem;
+}
+
+.file-info-box .file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.file-preview-frame {
+  width: 100%;
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 12px;
+  background: #f9fafb;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.analytics-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.analytics-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.analytics-list li:last-child { border-bottom: none; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+
+.detail-item label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.detail-item span {
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.verify-notice {
+  background: #fff8e6;
+  border: 1px solid #f0d78c;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  margin-top: 12px;
+}
 
 /* ---------- CMS ---------- */
 .cms-block {

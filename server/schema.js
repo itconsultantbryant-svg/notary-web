@@ -57,6 +57,32 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   extra_data TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS page_views (
+  id SERIAL PRIMARY KEY,
+  visitor_id VARCHAR(64),
+  page_path VARCHAR(500) NOT NULL,
+  referrer VARCHAR(500),
+  country VARCHAR(100),
+  city VARCHAR(100),
+  region VARCHAR(100),
+  user_agent TEXT,
+  duration_seconds INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS verification_logs (
+  id SERIAL PRIMARY KEY,
+  document_id VARCHAR(50),
+  found BOOLEAN DEFAULT FALSE,
+  status VARCHAR(50),
+  visitor_id VARCHAR(64),
+  country VARCHAR(100),
+  city VARCHAR(100),
+  region VARCHAR(100),
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
 }
 

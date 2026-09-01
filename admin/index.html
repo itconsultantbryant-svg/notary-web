@@ -64,11 +64,18 @@
       </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" type="button" data-section="dashboard"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</button>
+        <button class="nav-item" type="button" data-section="analytics"><i class="fas fa-chart-line" aria-hidden="true"></i> Analytics</button>
         <button class="nav-item" type="button" data-section="documents"><i class="fas fa-file-certificate" aria-hidden="true"></i> Documents</button>
         <button class="nav-item" type="button" data-section="cms"><i class="fas fa-edit" aria-hidden="true"></i> Content (CMS)</button>
         <button class="nav-item" type="button" data-section="contacts"><i class="fas fa-envelope" aria-hidden="true"></i> Submissions</button>
         <button class="nav-item" type="button" data-section="settings"><i class="fas fa-cog" aria-hidden="true"></i> Settings</button>
       </nav>
+      <div class="sidebar-stats" id="sidebarStats" aria-label="Today's activity">
+        <div class="sidebar-stats-title">Today</div>
+        <div class="sidebar-stat-row"><span>Visitors</span><strong id="sbVisitors">—</strong></div>
+        <div class="sidebar-stat-row"><span>Page views</span><strong id="sbViews">—</strong></div>
+        <div class="sidebar-stat-row"><span>Verifications</span><strong id="sbVerifications">—</strong></div>
+      </div>
       <div class="sidebar-footer">
         <div class="user-info" id="userEmail"></div>
         <button class="btn btn-sidebar-logout btn-sm" type="button" id="logoutBtn">

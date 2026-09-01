@@ -24,6 +24,7 @@ function createApiApp() {
   app.use("/api/documents", documentRoutes);
   app.use("/api/cms", cmsRoutes);
   app.use("/api/contact", contactRoutes);
+  app.use("/api/analytics", require("./routes/analytics"));
 
   app.get("/api/health", (req, res) => {
     res.json({

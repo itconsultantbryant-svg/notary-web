@@ -3,6 +3,7 @@
 const express = require("express");
 const { getDb, usePostgres } = require("../db");
 const { authMiddleware } = require("../middleware/auth");
+const { sendContactNotification } = require("../email");
 
 const router = express.Router();
 
@@ -38,6 +39,21 @@ router.post("/", async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [name, email, phone, subject, message, formType, JSON.stringify(extra)]
     );
+
+    const submission = {
+      name,
+      email,
+      phone,
+      subject,
+      message,
+      form_type: formType,
+      extra_data: JSON.stringify(extra),
+      created_at: new Date().toISOString()
+    };
+
+    sendContactNotification(submission).catch((err) => {
+      console.warn("Email notification failed:", err.message);
+    });
 
     res.json({
       ok: true,

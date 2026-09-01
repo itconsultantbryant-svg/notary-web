@@ -25,9 +25,12 @@ function createApp() {
   app.use("/api/documents", documentRoutes);
   app.use("/api/cms", cmsRoutes);
   app.use("/api/contact", contactRoutes);
+  app.use("/api/analytics", require("./routes/analytics"));
 
-  // Uploaded files
-  app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+  // Block public access to uploaded documents (admin-only via API)
+  app.get("/uploads/documents/*", (req, res) => {
+    res.status(403).json({ error: "Document files are not publicly accessible. Use document verification or contact the office." });
+  });
 
   // Admin dashboard
   app.use("/admin", express.static(path.join(__dirname, "..", "admin")));

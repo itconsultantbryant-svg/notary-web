@@ -970,6 +970,16 @@ html.no-aos [data-aos] { opacity: 1 !important; transform: none !important; }
 .verify-icon { font-size: 3rem; margin-bottom: 16px; }
 .verify-icon.success { color: #28a745; }
 .verify-icon.error { color: #dc3545; }
+.verify-download-notice {
+  background: rgba(12, 31, 63, 0.06);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--navy);
+}
+.verify-download-notice i { color: var(--gold); margin-right: 6px; }
 
 /* ============================================================
    RESPONSIVE & ACCESSIBILITY ENHANCEMENTS
