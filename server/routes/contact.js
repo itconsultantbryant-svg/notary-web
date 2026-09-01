@@ -1,7 +1,7 @@
 "use strict";
 
 const express = require("express");
-const { getDb } = require("../db");
+const { getDb, usePostgres } = require("../db");
 const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
@@ -76,23 +76,26 @@ router.get("/stats", authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
     const docs = await db.get("SELECT COUNT(*) AS count FROM documents");
-    const active = await db.get("SELECT COUNT(*) AS count FROM documents WHERE status = 'active'");
+    const active = await db.get("SELECT COUNT(*) AS count FROM documents WHERE status = ?", ["active"]);
     const pages = await db.get("SELECT COUNT(*) AS count FROM cms_pages");
     const blocks = await db.get("SELECT COUNT(*) AS count FROM cms_blocks");
     const contacts = await db.get("SELECT COUNT(*) AS count FROM contact_submissions");
-    const recent = await db.get(
-      "SELECT COUNT(*) AS count FROM contact_submissions WHERE created_at >= datetime('now', '-7 days')"
-    );
+
+    const recentSql = usePostgres()
+      ? "SELECT COUNT(*) AS count FROM contact_submissions WHERE created_at >= NOW() - INTERVAL '7 days'"
+      : "SELECT COUNT(*) AS count FROM contact_submissions WHERE created_at >= datetime('now', '-7 days')";
+    const recent = await db.get(recentSql);
 
     res.json({
-      documents: docs.count,
-      activeDocuments: active.count,
-      cmsPages: pages.count,
-      cmsBlocks: blocks.count,
-      contactSubmissions: contacts.count,
-      recentSubmissions: recent.count
+      documents: Number(docs?.count ?? 0),
+      activeDocuments: Number(active?.count ?? 0),
+      cmsPages: Number(pages?.count ?? 0),
+      cmsBlocks: Number(blocks?.count ?? 0),
+      contactSubmissions: Number(contacts?.count ?? 0),
+      recentSubmissions: Number(recent?.count ?? 0)
     });
   } catch (err) {
+    console.error("Stats error:", err);
     res.status(500).json({ error: "Failed to load stats" });
   }
 });
