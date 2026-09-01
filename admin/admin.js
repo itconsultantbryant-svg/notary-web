@@ -62,11 +62,30 @@
     }
   }
 
+  function closeSidebar() {
+    $("#sidebar").classList.remove("open");
+    $("#sidebarOverlay").classList.remove("show");
+    const toggle = $("#mobileToggle");
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+  }
+
+  function openSidebar() {
+    $("#sidebar").classList.add("open");
+    $("#sidebarOverlay").classList.add("show");
+    const toggle = $("#mobileToggle");
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
+  }
+
   function showApp() {
     $("#loginScreen").classList.add("hidden");
     $("#appLayout").classList.remove("hidden");
     $("#userEmail").textContent = currentUser.email;
     navigate("dashboard");
+  }
+
+  function toggleSidebar() {
+    if ($("#sidebar").classList.contains("open")) closeSidebar();
+    else openSidebar();
   }
 
   // ---- Navigation ----
@@ -81,7 +100,7 @@
       settings: "Settings"
     };
     $("#pageTitle").textContent = titles[section] || section;
-    $("#sidebar").classList.remove("open");
+    closeSidebar();
 
     const renderers = {
       dashboard: renderDashboard,
@@ -96,7 +115,7 @@
   // ---- Dashboard ----
   async function renderDashboard() {
     const el = $("#contentArea");
-    el.innerHTML = '<div class="stats-grid" id="statsGrid">Loading…</div><div class="card"><h3>Quick Actions</h3><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px"><button class="btn btn-primary" onclick="AdminApp.navigate(\'documents\')"><i class="fas fa-plus"></i> Add Document</button><button class="btn btn-navy" onclick="AdminApp.navigate(\'cms\')"><i class="fas fa-edit"></i> Edit Content</button><a href="/" target="_blank" class="btn btn-outline"><i class="fas fa-external-link-alt"></i> View Website</a><a href="/verify" target="_blank" class="btn btn-outline"><i class="fas fa-search"></i> Verify Page</a></div></div>';
+    el.innerHTML = '<div class="stats-grid" id="statsGrid"><div class="stat-card"><div class="lbl">Loading stats…</div></div></div><div class="card"><h3>Quick Actions</h3><div class="quick-actions"><button class="btn btn-primary" onclick="AdminApp.navigate(\'documents\')"><i class="fas fa-plus"></i> Add Document</button><button class="btn btn-navy" onclick="AdminApp.navigate(\'cms\')"><i class="fas fa-edit"></i> Edit Content</button><a href="/" target="_blank" rel="noopener" class="btn btn-outline"><i class="fas fa-external-link-alt"></i> View Website</a><a href="/verify" target="_blank" rel="noopener" class="btn btn-outline"><i class="fas fa-search"></i> Verify Page</a></div></div>';
 
     try {
       const stats = await api("/contact/stats");
@@ -117,8 +136,8 @@
   async function renderDocuments() {
     const el = $("#contentArea");
     el.innerHTML = `
-      <div class="page-header" style="margin:0 0 16px">
-        <p style="margin:0;color:#666">Manage notarized documents for public verification</p>
+      <div class="section-toolbar">
+        <p>Manage notarized documents for public verification</p>
         <button class="btn btn-primary" id="addDocBtn"><i class="fas fa-plus"></i> Add Document</button>
       </div>
       <div class="card"><div class="table-wrap" id="docTable">Loading…</div></div>
@@ -414,17 +433,26 @@
       e.preventDefault();
       const email = $("#loginEmail").value;
       const password = $("#loginPassword").value;
+      const btn = $("#loginBtn");
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in…';
+      $("#loginError").classList.add("hidden");
       try {
         await login(email, password);
       } catch (err) {
         $("#loginError").textContent = err.message;
         $("#loginError").classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
       }
     });
 
     $("#logoutBtn").addEventListener("click", logout);
     $$(".nav-item").forEach((n) => n.addEventListener("click", () => navigate(n.dataset.section)));
-    $("#mobileToggle").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#mobileToggle").addEventListener("click", toggleSidebar);
+    $("#sidebarOverlay").addEventListener("click", closeSidebar);
 
     if (await checkAuth()) showApp();
   });

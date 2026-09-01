@@ -6,67 +6,93 @@
   <title>Admin Dashboard | Hon. Jefferson Teah Notary Public Office</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link rel="stylesheet" href="admin.css" />
-  <link rel="icon" type="image/png" href="../assets/img/favicon.png" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
 </head>
 <body>
 
+  <a href="#mainContent" class="skip-link">Skip to main content</a>
+
   <!-- Login -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-card">
-      <h1>Admin Dashboard</h1>
-      <p>Hon. Jefferson Teah Notary Public Office</p>
-      <div id="loginError" class="alert alert-danger hidden"></div>
-      <form id="loginForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input class="form-control" type="email" id="loginEmail" required autocomplete="username" />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input class="form-control" type="password" id="loginPassword" required autocomplete="current-password" />
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
-          <i class="fas fa-sign-in-alt"></i> Sign In
-        </button>
-      </form>
+  <div id="loginScreen" class="login-screen" role="main">
+    <div class="login-wrap">
+      <div class="login-brand">
+        <img src="/assets/img/notary_logo.png" alt="Notary Office logo" class="login-logo" />
+        <h1>Admin Dashboard</h1>
+        <p>Hon. Jefferson Teah Notary Public Office</p>
+      </div>
+      <div class="login-card">
+        <div id="loginError" class="alert alert-danger hidden" role="alert"></div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input class="form-control" type="email" id="loginEmail" required autocomplete="username" placeholder="admin@jeffersonteahnotarypublic.com" />
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input class="form-control" type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter your password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Sign In
+          </button>
+        </form>
+        <p class="login-footer">
+          <a href="/" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View public website</a>
+        </p>
+      </div>
     </div>
   </div>
 
   <!-- App -->
   <div id="appLayout" class="app-layout hidden">
-    <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
-    <aside class="sidebar" id="sidebar">
+    <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+      <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
       <div class="sidebar-brand">
-        <h2>Notary Admin</h2>
-        <small>Content &amp; Verification</small>
+        <img src="/assets/img/notary_logo.png" alt="" class="sidebar-logo" aria-hidden="true" />
+        <div>
+          <h2>Notary Admin</h2>
+          <small>Content &amp; Verification</small>
+        </div>
       </div>
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-        <button class="nav-item" data-section="documents"><i class="fas fa-file-certificate"></i> Documents</button>
-        <button class="nav-item" data-section="cms"><i class="fas fa-edit"></i> Content (CMS)</button>
-        <button class="nav-item" data-section="contacts"><i class="fas fa-envelope"></i> Submissions</button>
-        <button class="nav-item" data-section="settings"><i class="fas fa-cog"></i> Settings</button>
+        <button class="nav-item active" type="button" data-section="dashboard"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard</button>
+        <button class="nav-item" type="button" data-section="documents"><i class="fas fa-file-certificate" aria-hidden="true"></i> Documents</button>
+        <button class="nav-item" type="button" data-section="cms"><i class="fas fa-edit" aria-hidden="true"></i> Content (CMS)</button>
+        <button class="nav-item" type="button" data-section="contacts"><i class="fas fa-envelope" aria-hidden="true"></i> Submissions</button>
+        <button class="nav-item" type="button" data-section="settings"><i class="fas fa-cog" aria-hidden="true"></i> Settings</button>
       </nav>
       <div class="sidebar-footer">
         <div class="user-info" id="userEmail"></div>
-        <button class="btn btn-outline btn-sm" id="logoutBtn" style="width:100%;color:#fff;border-color:rgba(255,255,255,.3)">
-          <i class="fas fa-sign-out-alt"></i> Logout
+        <button class="btn btn-sidebar-logout btn-sm" type="button" id="logoutBtn">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
         </button>
+        <a href="/" class="sidebar-site-link" target="_blank" rel="noopener"><i class="fas fa-globe"></i> View website</a>
       </div>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
       <div class="page-header">
-        <h1 id="pageTitle">Dashboard</h1>
+        <div>
+          <p class="page-eyebrow">Administration</p>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
       </div>
-      <div id="contentArea"></div>
+      <div id="contentArea" aria-live="polite"></div>
     </main>
   </div>
 
-  <script src="admin.js"></script>
+  <div id="globalLoader" class="global-loader hidden" aria-hidden="true">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <script src="/admin/admin.js"></script>
 </body>
 </html>

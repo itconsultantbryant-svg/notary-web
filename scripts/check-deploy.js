@@ -11,7 +11,7 @@ const checks = [
   { name: "Verify page", url: "/verify", expect: ["Verify Your Document", "verifyForm"] },
   { name: "CMS loader JS", url: "/assets/js/cms-loader.js", expect: ["data-cms"] },
   { name: "Updated main.js", url: "/assets/js/main.js", expect: ["/api/contact"] },
-  { name: "Admin panel", url: "/admin", expect: ["Admin Dashboard", "admin.js"] },
+  { name: "Admin panel", url: "/admin", expect: ["Admin Dashboard", "/admin/admin.js", "/admin/admin.css"] },
   { name: "API health", url: "/api/health", expect: ['"ok":true'], json: true }
 ];
 
