@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "npm install",
-  "buildCommand": "echo 'Static site + API — no build step'",
+  "buildCommand": "npm install && node scripts/init-db.js",
   "outputDirectory": ".",
   "framework": null,
   "cleanUrls": true,

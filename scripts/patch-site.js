@@ -58,7 +58,7 @@ const JSON_LD = `
 
 function pageSlug(filename) {
   const base = filename.replace(".html", "");
-  return base === "index" ? "index" : base;
+  return base === "index" ? "home" : base;
 }
 
 function canonicalUrl(filename) {
