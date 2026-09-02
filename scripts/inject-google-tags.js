@@ -68,8 +68,17 @@ const bodyBlock = bodyTags.length
   : `  <!-- google-tags-body:start -->\n  <!-- google-tags-body:end -->`;
 
 if (!html.includes("<!-- google-tags:start -->")) {
-  console.error("inject-google-tags: markers missing from index.html");
-  process.exit(1);
+  html = html.replace(
+    /(\s*<script type="application\/ld\+json">)/,
+    `\n  <!-- google-tags:start -->\n  <!-- Set GOOGLE_SITE_VERIFICATION, GA_MEASUREMENT_ID, or GTM_CONTAINER_ID in Vercel env -->\n  <!-- google-tags:end -->\n$1`
+  );
+}
+
+if (!html.includes("<!-- google-tags-body:start -->")) {
+  html = html.replace(
+    /<body([^>]*)>/,
+    (match) => `${match}\n\n  <!-- google-tags-body:start -->\n  <!-- google-tags-body:end -->`
+  );
 }
 
 html = html.replace(/<!-- google-tags:start -->[\s\S]*?<!-- google-tags:end -->/, headBlock);
