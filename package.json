@@ -7,6 +7,7 @@
     "start": "node server/index.js",
     "dev": "node server/index.js",
     "init-db": "node scripts/init-db.js",
+    "inject-google-tags": "node scripts/inject-google-tags.js",
     "check-deploy": "node scripts/check-deploy.js"
   },
   "engines": {
