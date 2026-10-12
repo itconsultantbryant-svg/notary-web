@@ -209,7 +209,7 @@ function initJsonStore() {
         store.documents.push({
           id: store._seq.documents, document_id: params[0], applicant_name: params[1], document_type: params[2],
           issue_date: params[3], expiry_date: params[4], status: params[5], notes: params[6],
-          file_name: params[7], file_path: params[8], created_at: now, updated_at: now
+          file_name: params[7], file_path: params[8], file_data: params[9] ?? null, created_at: now, updated_at: now
         });
       } else if (t.startsWith("INSERT INTO CMS_PAGES")) {
         store.cms_pages.push({ slug: params[0], title: params[1], meta_description: params[2], updated_at: now });
@@ -251,12 +251,19 @@ function initJsonStore() {
           created_at: now
         });
       } else if (t.startsWith("UPDATE DOCUMENTS")) {
-        const id = params[10];
+        if (t.startsWith("UPDATE DOCUMENTS SET FILE_DATA")) {
+          const row = store.documents.find((d) => String(d.id) === String(params[1]));
+          if (row && row.file_data == null) row.file_data = params[0];
+          persist();
+          return { changes: 1 };
+        }
+        const hasFile = t.includes("FILE_DATA = ?");
+        const id = params[hasFile ? 11 : 10];
         const row = store.documents.find((d) => String(d.id) === String(id));
         if (row) Object.assign(row, {
           document_id: params[0], applicant_name: params[1], document_type: params[2],
           issue_date: params[3], expiry_date: params[4], status: params[5], notes: params[6],
-          file_name: params[7], file_path: params[8], updated_at: params[9]
+          file_name: params[7], file_path: params[8], updated_at: params[9], ...(hasFile ? { file_data: params[10] } : {})
         });
       } else if (t.startsWith("UPDATE CMS_PAGES")) {
         const row = store.cms_pages.find((p) => p.slug === params[3]);

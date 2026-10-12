@@ -31,28 +31,34 @@ function resolveDiskPath(filePath) {
     return path.join(base, name);
   }
   if (filePath.startsWith("documents/")) {
-    return path.join(base, filePath.replace(/^documents\//, ""));
+    return path.join(base, path.basename(filePath));
   }
   return path.join(base, path.basename(filePath));
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, getUploadsDir()),
-  filename: (req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, `${Date.now()}-${safe}`);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: (process.env.VERCEL ? 4 : 10) * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/\.(pdf|jpg|jpeg|png|doc|docx)$/i.test(file.originalname)) cb(null, true);
+    else cb(new Error("Only PDF, JPG, JPEG, PNG, DOC and DOCX files allowed"));
   }
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /\.(pdf|jpg|jpeg|png|doc|docx)$/i;
-    if (allowed.test(file.originalname)) cb(null, true);
-    else cb(new Error("Only PDF, JPG, PNG, DOC files allowed"));
-  }
-});
+function receiveFile(req, res, next) {
+  upload.single("file")(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.code === "LIMIT_FILE_SIZE"
+      ? `File exceeds the ${process.env.VERCEL ? 4 : 10} MB upload limit` : err.message });
+    next();
+  });
+}
+
+const metadataColumns = "id, document_id, applicant_name, document_type, issue_date, expiry_date, status, notes, file_name, file_path, created_at, updated_at";
+function metadata(doc) {
+  if (!doc) return doc;
+  const { file_data, ...result } = doc;
+  return result;
+}
 
 function generateDocumentId() {
   const year = new Date().getFullYear();
@@ -161,20 +167,31 @@ router.get("/verify/:documentId", async (req, res) => {
 router.get("/:id/file", authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    const doc = await db.get("SELECT file_name, file_path FROM documents WHERE id = ?", [req.params.id]);
-    if (!doc?.file_path) return res.status(404).json({ error: "No file attached" });
+    const doc = await db.get("SELECT file_name, file_path, file_data FROM documents WHERE id = ?", [req.params.id]);
+    if (!doc || (!doc.file_data && !doc.file_path)) return res.status(404).json({ error: "No file attached" });
 
-    const diskPath = resolveDiskPath(doc.file_path);
-    if (!diskPath || !fs.existsSync(diskPath)) {
-      return res.status(404).json({ error: "File not found on server" });
-    }
-
-    const download = req.query.download === "1";
-    if (download) {
-      res.download(diskPath, doc.file_name || path.basename(diskPath));
+    let bytes;
+    if (doc.file_data != null) {
+      bytes = Buffer.from(doc.file_data, "base64");
     } else {
-      res.sendFile(diskPath);
+      const diskPath = resolveDiskPath(doc.file_path);
+      try {
+        bytes = await fs.promises.readFile(diskPath);
+      } catch (err) {
+        if (err.code !== "ENOENT") throw err;
+        return res.status(404).json({ error: "The original upload is no longer on the server. Please replace it by uploading the original file again." });
+      }
+      // Preserve surviving legacy uploads before this server's temporary disk disappears.
+      await db.run("UPDATE documents SET file_data = ? WHERE id = ? AND file_data IS NULL", [bytes.toString("base64"), req.params.id]);
     }
+    const name = doc.file_name || "document";
+    res.set("Cache-Control", "private, no-store");
+    res.set("X-Content-Type-Options", "nosniff");
+    res.attachment(name);
+    if (req.query.download !== "1") {
+      res.set("Content-Disposition", res.get("Content-Disposition").replace(/^attachment/, "inline"));
+    }
+    res.send(bytes);
   } catch (err) {
     console.error("File serve error:", err);
     res.status(500).json({ error: "Failed to load file" });
@@ -185,8 +202,8 @@ router.get("/:id/file", authMiddleware, async (req, res) => {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    const docs = await db.all("SELECT * FROM documents ORDER BY created_at DESC");
-    res.json({ documents: docs });
+    const docs = await db.all(`SELECT ${metadataColumns} FROM documents ORDER BY created_at DESC`);
+    res.json({ documents: docs.map(metadata) });
   } catch (err) {
     console.error("List documents error:", err);
     res.status(500).json({ error: "Failed to load documents" });
@@ -198,16 +215,16 @@ router.get("/:id", authMiddleware, async (req, res) => {
   if (req.params.id === "verify") return res.status(404).json({ error: "Not found" });
   try {
     const db = await getDb();
-    const doc = await db.get("SELECT * FROM documents WHERE id = ?", [req.params.id]);
+    const doc = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);
     if (!doc) return res.status(404).json({ error: "Document not found" });
-    res.json({ document: doc });
+    res.json({ document: metadata(doc) });
   } catch (err) {
     res.status(500).json({ error: "Failed to load document" });
   }
 });
 
 // Admin: create document
-router.post("/", authMiddleware, upload.single("file"), async (req, res) => {
+router.post("/", authMiddleware, receiveFile, async (req, res) => {
   try {
     const db = await getDb();
     const {
@@ -231,12 +248,12 @@ router.post("/", authMiddleware, upload.single("file"), async (req, res) => {
     }
 
     const fileName = req.file ? req.file.originalname : null;
-    const filePath = req.file ? req.file.filename : null;
+    const filePath = req.file ? "database" : null;
     const docStatus = status || (req.file ? "pending" : "active");
 
     const result = await db.run(
-      `INSERT INTO documents (document_id, applicant_name, document_type, issue_date, expiry_date, status, notes, file_name, file_path)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO documents (document_id, applicant_name, document_type, issue_date, expiry_date, status, notes, file_name, file_path, file_data)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         docId,
         applicant_name.trim(),
@@ -246,12 +263,13 @@ router.post("/", authMiddleware, upload.single("file"), async (req, res) => {
         docStatus,
         notes || null,
         fileName,
-        filePath
+        filePath,
+        req.file ? req.file.buffer.toString("base64") : null
       ]
     );
 
-    const doc = await db.get("SELECT * FROM documents WHERE document_id = ?", [docId]);
-    res.status(201).json({ document: doc, id: result.lastInsertRowid });
+    const doc = await db.get(`SELECT ${metadataColumns} FROM documents WHERE document_id = ?`, [docId]);
+    res.status(201).json({ document: metadata(doc), id: result.lastInsertRowid });
   } catch (err) {
     console.error("Create document error:", err);
     res.status(500).json({ error: err.message || "Failed to create document" });
@@ -259,10 +277,10 @@ router.post("/", authMiddleware, upload.single("file"), async (req, res) => {
 });
 
 // Admin: update document
-router.put("/:id", authMiddleware, upload.single("file"), async (req, res) => {
+router.put("/:id", authMiddleware, receiveFile, async (req, res) => {
   try {
     const db = await getDb();
-    const existing = await db.get("SELECT * FROM documents WHERE id = ?", [req.params.id]);
+    const existing = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);
     if (!existing) return res.status(404).json({ error: "Document not found" });
 
     const {
@@ -275,22 +293,24 @@ router.put("/:id", authMiddleware, upload.single("file"), async (req, res) => {
       notes
     } = req.body;
 
+    const nextDocumentId = (document_id || existing.document_id).trim().toUpperCase();
+    const duplicate = await db.get("SELECT id FROM documents WHERE UPPER(document_id) = ?", [nextDocumentId]);
+    if (duplicate && String(duplicate.id) !== String(existing.id)) {
+      return res.status(409).json({ error: "Document ID already exists" });
+    }
+
     let fileName = existing.file_name;
     let filePath = existing.file_path;
     if (req.file) {
-      if (existing.file_path) {
-        const oldPath = resolveDiskPath(existing.file_path);
-        if (oldPath && fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
       fileName = req.file.originalname;
-      filePath = req.file.filename;
+      filePath = "database";
     }
 
     await db.run(
       `UPDATE documents SET
         document_id = ?, applicant_name = ?, document_type = ?,
         issue_date = ?, expiry_date = ?, status = ?, notes = ?,
-        file_name = ?, file_path = ?, updated_at = ?
+        file_name = ?, file_path = ?, updated_at = ?${req.file ? ", file_data = ?" : ""}
        WHERE id = ?`,
       [
         (document_id || existing.document_id).trim().toUpperCase(),
@@ -303,12 +323,13 @@ router.put("/:id", authMiddleware, upload.single("file"), async (req, res) => {
         fileName,
         filePath,
         new Date().toISOString(),
+        ...(req.file ? [req.file.buffer.toString("base64")] : []),
         req.params.id
       ]
     );
 
-    const doc = await db.get("SELECT * FROM documents WHERE id = ?", [req.params.id]);
-    res.json({ document: doc });
+    const doc = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);
+    res.json({ document: metadata(doc) });
   } catch (err) {
     console.error("Update document error:", err);
     res.status(500).json({ error: "Failed to update document" });
@@ -319,13 +340,8 @@ router.put("/:id", authMiddleware, upload.single("file"), async (req, res) => {
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    const existing = await db.get("SELECT * FROM documents WHERE id = ?", [req.params.id]);
+    const existing = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);
     if (!existing) return res.status(404).json({ error: "Document not found" });
-
-    if (existing.file_path) {
-      const fullPath = resolveDiskPath(existing.file_path);
-      if (fullPath && fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-    }
 
     await db.run("DELETE FROM documents WHERE id = ?", [req.params.id]);
     res.json({ ok: true });

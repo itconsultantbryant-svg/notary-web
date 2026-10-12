@@ -307,7 +307,7 @@
             <div class="form-group"><label>Expiry Date</label><input class="form-control" type="date" name="expiry_date" value="${doc?.expiry_date || ""}" /></div>
           </div>
           <div class="form-group"><label>Notes (internal)</label><textarea class="form-control" name="notes">${doc?.notes || ""}</textarea></div>
-          <div class="form-group"><label>Attach File (PDF, JPG, PNG)</label><input class="form-control" type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+          <div class="form-group"><label>Attach File (PDF, JPG, JPEG, PNG, DOC, DOCX)</label><input class="form-control" type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
             ${doc?.file_name ? `<div class="file-info-box"><strong>Current file:</strong> ${esc(doc.file_name)}<div class="file-actions"><button type="button" class="btn btn-sm btn-outline" id="previewFileBtn"><i class="fas fa-eye"></i> Preview</button><button type="button" class="btn btn-sm btn-navy" id="downloadFileBtn"><i class="fas fa-download"></i> Download</button></div></div>` : "<small class=\"text-muted\">Upload a scanned copy for your records. Files are not publicly downloadable.</small>"}
           </div>
           <div style="display:flex;gap:12px;margin-top:16px">
@@ -402,42 +402,65 @@
     }
   }
 
-  async function openFilePreview(id, fileName, container) {
-    const target = container || document.body;
-    const res = await fetch(API + "/documents/" + id + "/file", {
-      headers: { Authorization: "Bearer " + token },
-      credentials: "include"
+  async function fetchDocumentFile(id, download) {
+    const res = await fetch(API + "/documents/" + encodeURIComponent(id) + "/file" + (download ? "?download=1" : ""), {
+      headers: token ? { Authorization: "Bearer " + token } : {},
+      credentials: "include",
+      cache: "no-store"
     });
-    if (!res.ok) throw new Error("Could not load file");
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const ext = (fileName || "").split(".").pop().toLowerCase();
-    if (container) {
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Could not load file. Please try again.");
+    }
+    return res.blob();
+  }
+
+  async function openFilePreview(id, fileName, container) {
+    // Create the preview synchronously so popup blockers cannot discard it.
+    const panel = document.createElement("div");
+    panel.className = "modal-overlay";
+    panel.innerHTML = `<div class="modal-box"><div class="modal-header"><h3>File preview</h3><button type="button" class="modal-close" aria-label="Close">&times;</button></div><div class="modal-body"><div class="preview-content">Loading file…</div><button type="button" class="btn btn-navy">Download original</button></div></div>`;
+    document.body.appendChild(panel);
+    let url;
+    let closed = false;
+    panel.querySelector(".modal-close").onclick = () => {
+      closed = true;
+      if (url) URL.revokeObjectURL(url);
+      panel.remove();
+    };
+    panel.querySelector(".btn").onclick = () => downloadDocFile(id, fileName);
+    const target = panel.querySelector(".preview-content");
+    try {
+      const blob = await fetchDocumentFile(id, false);
+      if (closed) return;
+      const ext = (fileName || "").split(".").pop().toLowerCase();
+      url = URL.createObjectURL(blob);
       if (ext === "pdf") {
-        container.innerHTML = `<iframe class="file-preview-frame" src="${url}" title="Document preview"></iframe>`;
-      } else if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
-        container.innerHTML = `<img src="${url}" alt="Document preview" style="max-width:100%;border-radius:8px;margin-top:12px" />`;
+        target.innerHTML = `<iframe class="file-preview-frame" src="${url}" title="Document preview"></iframe>`;
+      } else if (["jpg", "jpeg", "png"].includes(ext)) {
+        target.innerHTML = `<img src="${url}" alt="Document preview" style="max-width:100%;border-radius:8px" />`;
       } else {
-        container.innerHTML = `<p class="verify-notice">Preview not available for this file type. Use Download instead.</p>`;
+        target.textContent = "Download this Word document to view or edit it in Microsoft Word or another compatible application. To save changes in the system, upload the edited file using Edit document.";
       }
-    } else {
-      window.open(url, "_blank");
+    } catch (err) {
+      target.textContent = err.message;
     }
   }
 
   async function downloadDocFile(id, fileName) {
-    const res = await fetch(API + "/documents/" + id + "/file?download=1", {
-      headers: { Authorization: "Bearer " + token },
-      credentials: "include"
-    });
-    if (!res.ok) { alert("File not available"); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName || "document";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const blob = await fetchDocumentFile(id, true);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName || "document";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   async function editDoc(id) {

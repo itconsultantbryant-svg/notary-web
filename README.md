@@ -52,7 +52,7 @@ Set custom credentials in `.env` (copy from `.env.example`) before running `init
 6. Submit sitemap in [Google Search Console](https://search.google.com/search-console):
    `https://www.jeffersonteahnotarypublic.com/sitemap.xml`
 
-> **Note:** Local dev uses SQLite (`data/notary.db`). Production on Vercel requires `DATABASE_URL` (Neon) because serverless has no persistent filesystem.
+> **Note:** Local development uses a JSON store (`data/store.json`). Production on Vercel requires `DATABASE_URL` (Neon) because serverless has no persistent filesystem.
 
 ## Admin Dashboard
 
@@ -92,6 +92,16 @@ scripts/init-db.js            Database setup + seed
 assets/css/style.css          Styles
 assets/js/main.js             Site interactions
 assets/js/cms-loader.js       CMS content injection
-data/notary.db                Local SQLite database (dev only)
+data/store.json               Local JSON database (dev only)
 uploads/documents/            Uploaded document files (local)
 ```
+
+## Persistent admin document files
+
+New PDF, DOC, DOCX, PNG, JPG and JPEG uploads are saved as base64 contents in the document database row, together with their metadata. Production requires the existing Neon `DATABASE_URL`. Run `npm run init-db` during deployment (already in the Vercel build command) to add the `file_data` column to existing databases. Back up the database before deployment.
+
+Files are returned only by the authenticated `/api/documents/:id/file` endpoint; add `?download=1` for downloads. PDF and images have browser previews. Word files download for viewing/editing in a compatible application; use Edit document to upload the revised original. Metadata edits preserve the attached file. Limits are 4 MB on Vercel and 10 MB locally.
+
+Legacy disk uploads are copied into the database when an administrator first opens or downloads them, if the original bytes still exist on that server. To preserve all available legacy files before deployment, run `node scripts/migrate-document-files.js` on the server holding those files, with the database environment configured. Files already lost from an earlier temporary Vercel instance cannot be reconstructed from filenames; re-upload those originals through Edit document.
+
+Run document lifecycle regression coverage with `node --test tests/documents.test.js`. The test uses an isolated temporary JSON database and checks upload, logout/login, application restart, metadata edits, replacement, protected access and byte-identical downloads for every accepted extension. It does not connect to the production database.

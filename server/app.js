@@ -35,6 +35,9 @@ function createApp() {
   // Admin dashboard
   app.use("/admin", express.static(path.join(__dirname, "..", "admin")));
 
+  // Private persistence and server source must never be served as static assets.
+  app.use(["/data", "/server", "/scripts", "/node_modules"], (req, res) => res.sendStatus(403));
+
   // Static site files
   const root = path.join(__dirname, "..");
   app.use(express.static(root, {
