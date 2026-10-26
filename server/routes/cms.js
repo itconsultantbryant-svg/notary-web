@@ -2,7 +2,7 @@
 
 const express = require("express");
 const { getDb } = require("../db");
-const { authMiddleware } = require("../middleware/auth");
+const { authMiddleware, requirePermission } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.get("/pages", async (req, res) => {
 });
 
 // Admin: full page with blocks
-router.get("/admin/pages/:slug", authMiddleware, async (req, res) => {
+router.get("/admin/pages/:slug", authMiddleware, requirePermission("cms.view"), async (req, res) => {
   try {
     const db = await getDb();
     const page = await db.get("SELECT * FROM cms_pages WHERE slug = ?", [req.params.slug]);
@@ -48,7 +48,7 @@ router.get("/admin/pages/:slug", authMiddleware, async (req, res) => {
 });
 
 // Admin: list pages
-router.get("/admin/pages", authMiddleware, async (req, res) => {
+router.get("/admin/pages", authMiddleware, requirePermission("cms.view"), async (req, res) => {
   try {
     const db = await getDb();
     const pages = await db.all(`
@@ -63,7 +63,7 @@ router.get("/admin/pages", authMiddleware, async (req, res) => {
 });
 
 // Admin: update page meta
-router.put("/admin/pages/:slug", authMiddleware, async (req, res) => {
+router.put("/admin/pages/:slug", authMiddleware, requirePermission("cms.manage"), async (req, res) => {
   try {
     const db = await getDb();
     const { title, meta_description } = req.body;
@@ -83,7 +83,7 @@ router.put("/admin/pages/:slug", authMiddleware, async (req, res) => {
 });
 
 // Admin: update or create block
-router.put("/admin/blocks/:slug/:blockKey", authMiddleware, async (req, res) => {
+router.put("/admin/blocks/:slug/:blockKey", authMiddleware, requirePermission("cms.manage"), async (req, res) => {
   try {
     const db = await getDb();
     const { slug, blockKey } = req.params;
@@ -123,7 +123,7 @@ router.put("/admin/blocks/:slug/:blockKey", authMiddleware, async (req, res) => 
 });
 
 // Admin: delete block
-router.delete("/admin/blocks/:slug/:blockKey", authMiddleware, async (req, res) => {
+router.delete("/admin/blocks/:slug/:blockKey", authMiddleware, requirePermission("cms.manage"), async (req, res) => {
   try {
     const db = await getDb();
     await db.run(
@@ -137,7 +137,7 @@ router.delete("/admin/blocks/:slug/:blockKey", authMiddleware, async (req, res) 
 });
 
 // Admin: create new page
-router.post("/admin/pages", authMiddleware, async (req, res) => {
+router.post("/admin/pages", authMiddleware, requirePermission("cms.manage"), async (req, res) => {
   try {
     const db = await getDb();
     const { slug, title, meta_description } = req.body;

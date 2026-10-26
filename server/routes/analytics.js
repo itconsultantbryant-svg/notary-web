@@ -2,7 +2,7 @@
 
 const express = require("express");
 const { getDb } = require("../db");
-const { authMiddleware } = require("../middleware/auth");
+const { authMiddleware, requirePermission } = require("../middleware/auth");
 const { getRequestMeta } = require("../utils/request-meta");
 const { trackPageView, trackVerification, getAnalyticsStats } = require("../analytics-data");
 
@@ -37,7 +37,7 @@ router.post("/track", async (req, res) => {
 });
 
 // Admin: full analytics dashboard data
-router.get("/stats", authMiddleware, async (req, res) => {
+router.get("/stats", authMiddleware, requirePermission("analytics"), async (req, res) => {
   try {
     const db = await getDb();
     const stats = await getAnalyticsStats(db);
@@ -49,7 +49,7 @@ router.get("/stats", authMiddleware, async (req, res) => {
 });
 
 // Admin: sidebar summary (lightweight)
-router.get("/summary", authMiddleware, async (req, res) => {
+router.get("/summary", authMiddleware, requirePermission("analytics"), async (req, res) => {
   try {
     const db = await getDb();
     const stats = await getAnalyticsStats(db);

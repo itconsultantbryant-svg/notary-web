@@ -80,9 +80,15 @@
     $("#loginScreen").classList.add("hidden");
     $("#appLayout").classList.remove("hidden");
     $("#userEmail").textContent = currentUser.email;
+    $$(".nav-item").forEach((item) => {
+      const required = { dashboard: "dashboard", analytics: "analytics", documents: "documents.view", cms: "cms.view", contacts: "contacts.view", staff: "staff.manage" }[item.dataset.section];
+      item.classList.toggle("hidden", required && !can(required));
+    });
     loadSidebarStats();
     navigate("dashboard");
   }
+
+  function can(permission) { return (currentUser?.permissions || []).includes(permission); }
 
   async function loadSidebarStats() {
     try {
@@ -112,6 +118,7 @@
       documents: "Document Verification",
       cms: "Content Management",
       contacts: "Contact Submissions",
+      staff: "Staff & Access",
       settings: "Settings"
     };
     $("#pageTitle").textContent = titles[section] || section;
@@ -123,6 +130,7 @@
       documents: renderDocuments,
       cms: renderCms,
       contacts: renderContacts,
+      staff: renderStaff,
       settings: renderSettings
     };
     (renderers[section] || renderDashboard)();
@@ -232,13 +240,13 @@
     el.innerHTML = `
       <div class="section-toolbar">
         <p>Manage notarized documents for public verification</p>
-        <button class="btn btn-primary" id="addDocBtn"><i class="fas fa-plus"></i> Add Document</button>
+        ${can("documents.manage") ? '<button class="btn btn-primary" id="addDocBtn"><i class="fas fa-plus"></i> Add Document</button>' : ""}
       </div>
       <div class="card"><div class="table-wrap" id="docTable">Loading…</div></div>
       <div id="docModal"></div>
     `;
 
-    $("#addDocBtn").addEventListener("click", () => openDocModal());
+    $("#addDocBtn")?.addEventListener("click", () => openDocModal());
     await loadDocuments();
   }
 
@@ -262,8 +270,7 @@
             <td>${d.file_name ? '<i class="fas fa-paperclip" title="' + esc(d.file_name) + '"></i> ' + esc(d.file_name) : "—"}</td>
             <td>
               <button class="btn btn-sm btn-outline" title="View" onclick="AdminApp.viewDoc(${d.id})"><i class="fas fa-eye"></i></button>
-              <button class="btn btn-sm btn-outline" title="Edit" onclick="AdminApp.editDoc(${d.id})"><i class="fas fa-edit"></i></button>
-              <button class="btn btn-sm btn-danger" title="Delete" onclick="AdminApp.deleteDoc(${d.id})"><i class="fas fa-trash"></i></button>
+              ${can("documents.manage") ? `<button class="btn btn-sm btn-outline" title="Edit" onclick="AdminApp.editDoc(${d.id})"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" title="Delete" onclick="AdminApp.deleteDoc(${d.id})"><i class="fas fa-trash"></i></button>` : ""}
             </td>
           </tr>
         `).join("")}</tbody>
@@ -374,8 +381,8 @@
         <div id="docPreviewArea"></div>
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:20px">
           ${doc.file_name ? `<button type="button" class="btn btn-outline" id="viewPreviewBtn"><i class="fas fa-eye"></i> Preview File</button><button type="button" class="btn btn-navy" id="viewDownloadBtn"><i class="fas fa-download"></i> Download</button>` : ""}
-          ${doc.status === "pending" ? `<button type="button" class="btn btn-primary" id="approveDocBtn"><i class="fas fa-check"></i> Approve &amp; Activate</button>` : ""}
-          <button type="button" class="btn btn-outline" id="editFromView"><i class="fas fa-edit"></i> Edit</button>
+           ${doc.status === "pending" && can("documents.manage") ? `<button type="button" class="btn btn-primary" id="approveDocBtn"><i class="fas fa-check"></i> Approve &amp; Activate</button>` : ""}
+           ${can("documents.manage") ? '<button type="button" class="btn btn-outline" id="editFromView"><i class="fas fa-edit"></i> Edit</button>' : ""}
           <button type="button" class="btn btn-outline" id="closeViewModal">Close</button>
         </div>
       </div>
@@ -383,7 +390,7 @@
     document.body.appendChild(modal);
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
     $("#closeViewModal", modal).addEventListener("click", () => modal.remove());
-    $("#editFromView", modal).addEventListener("click", () => { modal.remove(); openDocModal(doc); });
+    $("#editFromView", modal)?.addEventListener("click", () => { modal.remove(); openDocModal(doc); });
     if (doc.file_name) {
       $("#viewPreviewBtn", modal).addEventListener("click", () => openFilePreview(id, doc.file_name, $("#docPreviewArea", modal)));
       $("#viewDownloadBtn", modal).addEventListener("click", () => downloadDocFile(id, doc.file_name));
@@ -486,7 +493,7 @@
             <label>Select Page</label>
             <select class="form-control" id="cmsPageSelect"></select>
           </div>
-          <button class="btn btn-primary" id="saveCmsMeta"><i class="fas fa-save"></i> Save Page Meta</button>
+          ${can("cms.manage") ? '<button class="btn btn-primary" id="saveCmsMeta"><i class="fas fa-save"></i> Save Page Meta</button>' : ""}
         </div>
       </div>
       <div class="card" id="cmsMetaCard">
@@ -501,7 +508,7 @@
     sel.innerHTML = pages.map((p) => `<option value="${p.slug}">${esc(p.title || p.slug)}</option>`).join("");
     sel.value = selectedPage;
     sel.addEventListener("change", () => { selectedPage = sel.value; loadCmsPage(); });
-    $("#saveCmsMeta").addEventListener("click", saveCmsMeta);
+    $("#saveCmsMeta")?.addEventListener("click", saveCmsMeta);
     await loadCmsPage();
   }
 
@@ -524,7 +531,7 @@
         ${b.content_type === "html"
           ? `<textarea class="form-control cms-content" rows="4">${esc(b.content)}</textarea>`
           : `<textarea class="form-control cms-content" rows="3">${esc(b.content)}</textarea>`}
-        <button class="btn btn-sm btn-primary save-block-btn" style="margin-top:8px"><i class="fas fa-save"></i> Save Block</button>
+         ${can("cms.manage") ? '<button class="btn btn-sm btn-primary save-block-btn" style="margin-top:8px"><i class="fas fa-save"></i> Save Block</button>' : ""}
       </div>
     `).join("");
 
@@ -583,7 +590,7 @@
             <td>${esc(s.form_type)}</td>
             <td>
               <button class="btn btn-sm btn-outline" onclick="AdminApp.viewContact(${s.id})"><i class="fas fa-eye"></i></button>
-              <button class="btn btn-sm btn-danger" onclick="AdminApp.deleteContact(${s.id})"><i class="fas fa-trash"></i></button>
+              ${can("contacts.manage") ? `<button class="btn btn-sm btn-danger" onclick="AdminApp.deleteContact(${s.id})"><i class="fas fa-trash"></i></button>` : ""}
             </td>
           </tr>
         `).join("")}</tbody>
@@ -613,7 +620,8 @@
         <h3>Change Password</h3>
         <form id="pwForm">
           <div class="form-group"><label>Current Password</label><input class="form-control" type="password" name="currentPassword" required /></div>
-          <div class="form-group"><label>New Password (8+ characters)</label><input class="form-control" type="password" name="newPassword" required minlength="8" /></div>
+          <div class="form-group"><label>New Password (8+ characters)</label><input class="form-control" type="password" name="newPassword" required minlength="8" maxlength="128" autocomplete="new-password" /></div>
+          <div class="form-group"><label>Confirm New Password</label><input class="form-control" type="password" name="confirmPassword" required minlength="8" maxlength="128" autocomplete="new-password" /></div>
           <button type="submit" class="btn btn-primary">Update Password</button>
         </form>
       </div>
@@ -633,6 +641,7 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       try {
+        if (fd.get("newPassword") !== fd.get("confirmPassword")) throw new Error("New passwords do not match");
         await api("/auth/password", {
           method: "PUT",
           body: { currentPassword: fd.get("currentPassword"), newPassword: fd.get("newPassword") }
@@ -645,13 +654,49 @@
     });
   }
 
+  // ---- Staff and access ----
+  async function renderStaff() {
+    const el = $("#contentArea");
+    if (!can("staff.manage")) { el.innerHTML = '<div class="alert alert-danger">You do not have permission to manage staff users.</div>'; return; }
+    el.innerHTML = '<div class="section-toolbar"><p>Create staff accounts, assign a role, and tailor their access.</p><button class="btn btn-primary" id="addStaffBtn"><i class="fas fa-user-plus"></i> Add Staff User</button></div><div class="card"><div class="table-wrap" id="staffTable">Loading staff users…</div></div>';
+    $("#addStaffBtn").addEventListener("click", () => openStaffModal());
+    await loadStaff();
+  }
+
+  async function loadStaff() {
+    try {
+      const { users } = await api("/users"); window._staffUsers = users;
+      $("#staffTable").innerHTML = users.length ? `<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.role)}</td><td>${esc((u.permissions || []).join(", ") || "None")}</td><td><span class="badge badge-${u.active ? "active" : "expired"}">${u.active ? "Active" : "Disabled"}</span></td><td>${u.role === "administrator" ? "Protected" : `<button class="btn btn-sm btn-outline" onclick="AdminApp.editStaff(${u.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="AdminApp.deleteStaff(${u.id})"><i class="fas fa-trash"></i></button>`}</td></tr>`).join("")}</tbody></table>` : '<div class="empty-state"><p>No staff users yet.</p></div>';
+    } catch (err) { $("#staffTable").innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`; }
+  }
+
+  async function openStaffModal(user) {
+    const modal = document.createElement("div"); modal.className = "modal-overlay";
+    let config;
+    try { config = await api("/users/permissions"); } catch (err) { alert(err.message); return; }
+    const roles = Object.keys(config.roles).filter((r) => r !== "administrator");
+    const selected = new Set(user?.permissions || config.roles[user?.role || "clerk"] || []);
+    modal.innerHTML = `<div class="modal-box"><h3>${user ? "Edit Staff User" : "Add Staff User"}</h3><form id="staffForm">
+      <div class="form-row"><div class="form-group"><label>Full Name *</label><input class="form-control" name="name" required maxlength="255" value="${esc(user?.name || "")}" /></div><div class="form-group"><label>Email *</label><input class="form-control" name="email" type="email" required ${user ? "disabled" : ""} value="${esc(user?.email || "")}" /></div></div>
+      ${user ? "" : '<div class="form-group"><label>Temporary Password *</label><input class="form-control" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></div>'}
+      <div class="form-group"><label>Role</label><select class="form-control" name="role">${roles.map((r) => `<option value="${r}" ${user?.role === r ? "selected" : ""}>${r[0].toUpperCase() + r.slice(1)}</option>`).join("")}</select></div>
+      <div class="form-group"><label>Permissions</label><div class="permission-list">${config.permissions.filter((p) => p !== "staff.manage").map((p) => `<label><input type="checkbox" name="permissions" value="${p}" ${selected.has(p) ? "checked" : ""} /> ${esc(p)}</label>`).join("")}</div></div>
+      <div class="form-group"><label><input type="checkbox" name="active" ${user?.active === false ? "" : "checked"} /> Account is active</label></div>
+      <div style="display:flex;gap:12px"><button class="btn btn-primary" type="submit">${user ? "Save Changes" : "Create Staff User"}</button><button class="btn btn-outline" type="button" id="closeStaffModal">Cancel</button></div></form></div>`;
+    document.body.appendChild(modal); $("#closeStaffModal", modal).onclick = () => modal.remove();
+    $("#staffForm", modal).addEventListener("submit", async (e) => { e.preventDefault(); const fd = new FormData(e.target); const body = { name: fd.get("name"), role: fd.get("role"), active: fd.get("active") === "on", permissions: fd.getAll("permissions") }; if (!user) { body.email = fd.get("email"); body.password = fd.get("password"); } try { await api(user ? `/users/${user.id}` : "/users", { method: user ? "PUT" : "POST", body }); modal.remove(); loadStaff(); } catch (err) { showAlert($(".modal-box", modal), err.message, "danger"); } });
+  }
+
+  function editStaff(id) { const user = (window._staffUsers || []).find((u) => u.id === id); if (user) openStaffModal(user); }
+  async function deleteStaff(id) { if (!confirm("Delete this staff user? They will no longer be able to sign in.")) return; try { await api(`/users/${id}`, { method: "DELETE" }); loadStaff(); } catch (err) { alert(err.message); } }
+
   function esc(str) {
     if (!str) return "";
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // ---- Init ----
-  window.AdminApp = { navigate, editDoc, deleteDoc, viewDoc, viewContact, deleteContact };
+  window.AdminApp = { navigate, editDoc, deleteDoc, viewDoc, viewContact, deleteContact, editStaff, deleteStaff };
 
   document.addEventListener("DOMContentLoaded", async () => {
     $("#loginForm").addEventListener("submit", async (e) => {

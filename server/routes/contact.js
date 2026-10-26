@@ -2,7 +2,7 @@
 
 const express = require("express");
 const { getDb, usePostgres } = require("../db");
-const { authMiddleware } = require("../middleware/auth");
+const { authMiddleware, requirePermission } = require("../middleware/auth");
 const { sendContactNotification } = require("../email");
 
 const router = express.Router();
@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
 });
 
 // Admin: list submissions
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, requirePermission("contacts.view"), async (req, res) => {
   try {
     const db = await getDb();
     const submissions = await db.all("SELECT * FROM contact_submissions ORDER BY created_at DESC LIMIT 200");
@@ -77,7 +77,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Admin: delete submission
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, requirePermission("contacts.manage"), async (req, res) => {
   try {
     const db = await getDb();
     await db.run("DELETE FROM contact_submissions WHERE id = ?", [req.params.id]);
@@ -88,7 +88,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 });
 
 // Admin dashboard stats
-router.get("/stats", authMiddleware, async (req, res) => {
+router.get("/stats", authMiddleware, requirePermission("dashboard"), async (req, res) => {
   try {
     const db = await getDb();
     const docs = await db.get("SELECT COUNT(*) AS count FROM documents");

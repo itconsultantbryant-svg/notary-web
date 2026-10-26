@@ -4,6 +4,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const { getDb } = require("../db");
 const { signToken, authMiddleware, findAdminByEmail } = require("../middleware/auth");
+const { publicUser } = require("../access");
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name }
+      user: publicUser(user)
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -49,20 +50,21 @@ router.post("/logout", (req, res) => {
 
 router.get("/me", authMiddleware, async (req, res) => {
   const db = await getDb();
-  const user = await db.get("SELECT id, email, name, created_at FROM admin_users WHERE id = ?", [req.user.id]);
+  const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.user.id]);
   if (!user) return res.status(404).json({ error: "User not found" });
-  res.json({ user });
+  res.json({ user: publicUser(user) });
 });
 
 router.put("/password", authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword || newPassword.length < 8) {
+    if (!currentPassword || !newPassword || typeof newPassword !== "string" || newPassword.length < 8 || newPassword.length > 128) {
       return res.status(400).json({ error: "Valid current and new password (8+ chars) required" });
     }
 
     const db = await getDb();
     const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.user.id]);
+    if (!user) return res.status(404).json({ error: "User not found" });
     const valid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
 

@@ -32,6 +32,8 @@ function loadStore() {
   const defaults = defaultStore();
   if (!data.page_views) data.page_views = [];
   if (!data.verification_logs) data.verification_logs = [];
+  if (!data.admin_users) data.admin_users = [];
+  data.admin_users.forEach((user) => { if (!user.role) user.role = "administrator"; if (user.active === undefined) user.active = true; });
   data._seq = { ...defaults._seq, ...(data._seq || {}) };
   return data;
 }
@@ -159,6 +161,9 @@ function initJsonStore() {
       if (t.includes("FROM DOCUMENTS")) {
         return [...store.documents].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       }
+      if (t.includes("FROM ADMIN_USERS")) {
+        return [...store.admin_users].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
       if (t.includes("FROM CONTACT_SUBMISSIONS")) {
         return [...store.contact_submissions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 200);
       }
@@ -203,7 +208,7 @@ function initJsonStore() {
 
       if (t.startsWith("INSERT INTO ADMIN_USERS")) {
         store._seq.admin_users++;
-        store.admin_users.push({ id: store._seq.admin_users, email: params[0], password_hash: params[1], name: params[2], created_at: now });
+        store.admin_users.push({ id: store._seq.admin_users, email: params[0], password_hash: params[1], name: params[2], role: params[3] || "administrator", permissions: params[4] || null, active: params[5] !== undefined ? Boolean(params[5]) : true, created_at: now });
       } else if (t.startsWith("INSERT INTO DOCUMENTS")) {
         store._seq.documents++;
         store.documents.push({
@@ -272,8 +277,14 @@ function initJsonStore() {
         const row = store.cms_blocks.find((b) => b.page_slug === params[3] && b.block_key === params[4]);
         if (row) { row.content = params[0]; row.content_type = params[1]; row.label = params[2]; }
       } else if (t.startsWith("UPDATE ADMIN_USERS")) {
-        const row = store.admin_users.find((u) => String(u.id) === String(params[1]));
-        if (row) row.password_hash = params[0];
+        const id = params[params.length - 1];
+        const row = store.admin_users.find((u) => String(u.id) === String(id));
+        if (row) {
+          if (t.includes("PASSWORD_HASH")) row.password_hash = params[0];
+          if (t.includes("NAME =")) { row.name = params[0]; row.role = params[1]; row.permissions = params[2]; row.active = Boolean(params[3]); }
+        }
+      } else if (t.startsWith("DELETE FROM ADMIN_USERS")) {
+        store.admin_users = store.admin_users.filter((u) => String(u.id) !== String(params[0]));
       } else if (t.startsWith("DELETE FROM DOCUMENTS")) {
         store.documents = store.documents.filter((d) => String(d.id) !== String(params[0]));
       } else if (t.startsWith("DELETE FROM CMS_BLOCKS")) {

@@ -5,7 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const { getDb } = require("../db");
-const { authMiddleware } = require("../middleware/auth");
+const { authMiddleware, requirePermission } = require("../middleware/auth");
 const { getRequestMeta } = require("../utils/request-meta");
 const { trackVerification } = require("../analytics-data");
 
@@ -164,7 +164,7 @@ router.get("/verify/:documentId", async (req, res) => {
 });
 
 // Admin: secure file download / preview
-router.get("/:id/file", authMiddleware, async (req, res) => {
+router.get("/:id/file", authMiddleware, requirePermission("documents.view"), async (req, res) => {
   try {
     const db = await getDb();
     const doc = await db.get("SELECT file_name, file_path, file_data FROM documents WHERE id = ?", [req.params.id]);
@@ -199,7 +199,7 @@ router.get("/:id/file", authMiddleware, async (req, res) => {
 });
 
 // Admin: list all documents
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, requirePermission("documents.view"), async (req, res) => {
   try {
     const db = await getDb();
     const docs = await db.all(`SELECT ${metadataColumns} FROM documents ORDER BY created_at DESC`);
@@ -211,7 +211,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Admin: get single document
-router.get("/:id", authMiddleware, async (req, res) => {
+router.get("/:id", authMiddleware, requirePermission("documents.view"), async (req, res) => {
   if (req.params.id === "verify") return res.status(404).json({ error: "Not found" });
   try {
     const db = await getDb();
@@ -224,7 +224,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
 });
 
 // Admin: create document
-router.post("/", authMiddleware, receiveFile, async (req, res) => {
+router.post("/", authMiddleware, requirePermission("documents.manage"), receiveFile, async (req, res) => {
   try {
     const db = await getDb();
     const {
@@ -277,7 +277,7 @@ router.post("/", authMiddleware, receiveFile, async (req, res) => {
 });
 
 // Admin: update document
-router.put("/:id", authMiddleware, receiveFile, async (req, res) => {
+router.put("/:id", authMiddleware, requirePermission("documents.manage"), receiveFile, async (req, res) => {
   try {
     const db = await getDb();
     const existing = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);
@@ -337,7 +337,7 @@ router.put("/:id", authMiddleware, receiveFile, async (req, res) => {
 });
 
 // Admin: delete document
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, requirePermission("documents.manage"), async (req, res) => {
   try {
     const db = await getDb();
     const existing = await db.get(`SELECT ${metadataColumns} FROM documents WHERE id = ?`, [req.params.id]);

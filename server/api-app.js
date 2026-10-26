@@ -21,6 +21,7 @@ function createApiApp() {
   app.use(cookieParser());
 
   app.use("/api/auth", authRoutes);
+  app.use("/api/users", require("./routes/users"));
   app.use("/api/documents", documentRoutes);
   app.use("/api/cms", cmsRoutes);
   app.use("/api/contact", contactRoutes);
