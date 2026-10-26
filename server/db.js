@@ -281,7 +281,11 @@ function initJsonStore() {
         const row = store.admin_users.find((u) => String(u.id) === String(id));
         if (row) {
           if (t.includes("PASSWORD_HASH")) row.password_hash = params[0];
-          if (t.includes("NAME =")) { row.name = params[0]; row.role = params[1]; row.permissions = params[2]; row.active = Boolean(params[3]); }
+          if (t.includes("NAME =")) {
+            const offset = t.includes("EMAIL =") ? 1 : 0;
+            if (offset) row.email = params[0];
+            row.name = params[offset]; row.role = params[offset + 1]; row.permissions = params[offset + 2]; row.active = Boolean(params[offset + 3]);
+          }
           if (t.includes("PASSWORD_RESET_REQUESTED_AT")) row.password_reset_requested_at = params[t.includes("PASSWORD_HASH") ? 1 : 0] || null;
         }
       } else if (t.startsWith("DELETE FROM ADMIN_USERS")) {

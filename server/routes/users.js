@@ -50,9 +50,11 @@ router.put("/:id", async (req, res) => {
     const existing = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.params.id]);
     if (!existing) return res.status(404).json({ error: "Staff user not found" });
     if ((existing.role || "administrator") === "administrator") return res.status(403).json({ error: "Administrator accounts cannot be changed here" });
-    const { name, role, permissions, active } = cleanUser({ ...existing, ...req.body });
-    if (!name || !Object.prototype.hasOwnProperty.call(ROLE_PERMISSIONS, role) || role === "administrator") return res.status(400).json({ error: "Invalid staff details" });
-    await db.run("UPDATE admin_users SET name = ?, role = ?, permissions = ?, active = ? WHERE id = ?", [name, role, JSON.stringify(permissions), active, req.params.id]);
+    const { email, name, role, permissions, active } = cleanUser({ ...existing, ...req.body });
+    if (!name || !/^\S+@\S+\.\S+$/.test(email) || email.length > 255 || !Object.prototype.hasOwnProperty.call(ROLE_PERMISSIONS, role) || role === "administrator") return res.status(400).json({ error: "Enter valid staff details" });
+    const duplicate = await db.get("SELECT id FROM admin_users WHERE email = ?", [email]);
+    if (duplicate && String(duplicate.id) !== String(existing.id)) return res.status(409).json({ error: "A user with this email already exists" });
+    await db.run("UPDATE admin_users SET email = ?, name = ?, role = ?, permissions = ?, active = ? WHERE id = ?", [email, name, role, JSON.stringify(permissions), active, req.params.id]);
     const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.params.id]);
     res.json({ user: publicUser(user) });
   } catch (err) { console.error("Update user error:", err); res.status(500).json({ error: "Failed to update staff user" }); }

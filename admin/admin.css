@@ -224,6 +224,9 @@ body {
   font-size: 1rem;
 }
 
+.btn-sidebar-settings { margin: 10px 0 6px; color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); }
+.btn-sidebar-settings:hover, .btn-sidebar-settings.active { background: rgba(201, 162, 39, .18); color: var(--gold-light); border-color: var(--gold-light); }
+
 .sidebar-stats {
   margin: 8px 16px 0;
   padding: 14px 16px;
