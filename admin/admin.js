@@ -31,6 +31,17 @@
     setTimeout(() => el.remove(), 4000);
   }
 
+  function bindPasswordToggles(container = document) {
+    $$("[data-password-toggle]", container).forEach((button) => button.addEventListener("click", () => {
+      const input = document.getElementById(button.dataset.passwordToggle) || $("#" + button.dataset.passwordToggle, container);
+      if (!input) return;
+      const visible = input.type === "password";
+      input.type = visible ? "text" : "password";
+      button.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+      button.innerHTML = `<i class="fas fa-eye${visible ? "-slash" : ""}"></i>`;
+    }));
+  }
+
   // ---- Auth ----
   async function login(email, password) {
     const data = await api("/auth/login", { method: "POST", body: { email, password } });
@@ -619,12 +630,13 @@
       <div class="card">
         <h3>Change Password</h3>
         <form id="pwForm">
-          <div class="form-group"><label>Current Password</label><input class="form-control" type="password" name="currentPassword" required /></div>
-          <div class="form-group"><label>New Password (8+ characters)</label><input class="form-control" type="password" name="newPassword" required minlength="8" maxlength="128" autocomplete="new-password" /></div>
-          <div class="form-group"><label>Confirm New Password</label><input class="form-control" type="password" name="confirmPassword" required minlength="8" maxlength="128" autocomplete="new-password" /></div>
+          <div class="form-group"><label>Current Password</label><div class="password-input"><input class="form-control" id="currentPassword" type="password" name="currentPassword" required /><button class="password-toggle" type="button" data-password-toggle="currentPassword" aria-label="Show password"><i class="fas fa-eye"></i></button></div></div>
+          <div class="form-group"><label>New Password (8+ characters)</label><div class="password-input"><input class="form-control" id="newPassword" type="password" name="newPassword" required minlength="8" maxlength="128" autocomplete="new-password" /><button class="password-toggle" type="button" data-password-toggle="newPassword" aria-label="Show password"><i class="fas fa-eye"></i></button></div></div>
+          <div class="form-group"><label>Confirm New Password</label><div class="password-input"><input class="form-control" id="confirmPassword" type="password" name="confirmPassword" required minlength="8" maxlength="128" autocomplete="new-password" /><button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Show password"><i class="fas fa-eye"></i></button></div></div>
           <button type="submit" class="btn btn-primary">Update Password</button>
         </form>
       </div>
+      ${currentUser.role !== "administrator" ? '<div class="card"><h3>Request Password Change</h3><p>Send a request to an administrator. They will set a new password for your account.</p><button type="button" class="btn btn-outline" id="requestPasswordChange">Request Password Change</button></div>' : ""}
       <div class="card">
         <h3>Website Info</h3>
         <p><strong>Public URL:</strong> <a href="https://www.jeffersonteahnotarypublic.com" target="_blank">www.jeffersonteahnotarypublic.com</a></p>
@@ -637,6 +649,7 @@
         <p class="text-muted" style="font-size:.88rem;margin:0">Set <code>SMTP_HOST</code>, <code>SMTP_USER</code>, <code>SMTP_PASS</code>, and optionally <code>SMTP_FROM</code>.</p>
       </div>
     `;
+    bindPasswordToggles($("#contentArea"));
     $("#pwForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
@@ -652,6 +665,11 @@
         alert(err.message);
       }
     });
+    $("#requestPasswordChange")?.addEventListener("click", async (e) => {
+      e.currentTarget.disabled = true;
+      try { const result = await api("/auth/password-request", { method: "POST" }); alert(result.message); }
+      catch (err) { alert(err.message); e.currentTarget.disabled = false; }
+    });
   }
 
   // ---- Staff and access ----
@@ -666,7 +684,7 @@
   async function loadStaff() {
     try {
       const { users } = await api("/users"); window._staffUsers = users;
-      $("#staffTable").innerHTML = users.length ? `<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.role)}</td><td>${esc((u.permissions || []).join(", ") || "None")}</td><td><span class="badge badge-${u.active ? "active" : "expired"}">${u.active ? "Active" : "Disabled"}</span></td><td>${u.role === "administrator" ? "Protected" : `<button class="btn btn-sm btn-outline" onclick="AdminApp.editStaff(${u.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="AdminApp.deleteStaff(${u.id})"><i class="fas fa-trash"></i></button>`}</td></tr>`).join("")}</tbody></table>` : '<div class="empty-state"><p>No staff users yet.</p></div>';
+      $("#staffTable").innerHTML = users.length ? `<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access</th><th>Status</th><th>Actions</th></tr></thead><tbody>${users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.role)}</td><td>${esc((u.permissions || []).join(", ") || "None")}</td><td><span class="badge badge-${u.active ? "active" : "expired"}">${u.active ? "Active" : "Disabled"}</span>${u.password_reset_requested_at ? '<br><small class="text-muted">Password request pending</small>' : ""}</td><td>${u.role === "administrator" ? "Protected" : `<button class="btn btn-sm btn-outline" onclick="AdminApp.editStaff(${u.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-navy" onclick="AdminApp.resetStaffPassword(${u.id})"><i class="fas fa-key"></i></button> <button class="btn btn-sm btn-danger" onclick="AdminApp.deleteStaff(${u.id})"><i class="fas fa-trash"></i></button>`}</td></tr>`).join("")}</tbody></table>` : '<div class="empty-state"><p>No staff users yet.</p></div>';
     } catch (err) { $("#staffTable").innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`; }
   }
 
@@ -678,17 +696,18 @@
     const selected = new Set(user?.permissions || config.roles[user?.role || "clerk"] || []);
     modal.innerHTML = `<div class="modal-box"><h3>${user ? "Edit Staff User" : "Add Staff User"}</h3><form id="staffForm">
       <div class="form-row"><div class="form-group"><label>Full Name *</label><input class="form-control" name="name" required maxlength="255" value="${esc(user?.name || "")}" /></div><div class="form-group"><label>Email *</label><input class="form-control" name="email" type="email" required ${user ? "disabled" : ""} value="${esc(user?.email || "")}" /></div></div>
-      ${user ? "" : '<div class="form-group"><label>Temporary Password *</label><input class="form-control" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></div>'}
+      ${user ? "" : '<div class="form-group"><label>Temporary Password *</label><div class="password-input"><input class="form-control" id="staffPassword" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /><button class="password-toggle" type="button" data-password-toggle="staffPassword" aria-label="Show password"><i class="fas fa-eye"></i></button></div></div>'}
       <div class="form-group"><label>Role</label><select class="form-control" name="role">${roles.map((r) => `<option value="${r}" ${user?.role === r ? "selected" : ""}>${r[0].toUpperCase() + r.slice(1)}</option>`).join("")}</select></div>
       <div class="form-group"><label>Permissions</label><div class="permission-list">${config.permissions.filter((p) => p !== "staff.manage").map((p) => `<label><input type="checkbox" name="permissions" value="${p}" ${selected.has(p) ? "checked" : ""} /> ${esc(p)}</label>`).join("")}</div></div>
       <div class="form-group"><label><input type="checkbox" name="active" ${user?.active === false ? "" : "checked"} /> Account is active</label></div>
       <div style="display:flex;gap:12px"><button class="btn btn-primary" type="submit">${user ? "Save Changes" : "Create Staff User"}</button><button class="btn btn-outline" type="button" id="closeStaffModal">Cancel</button></div></form></div>`;
-    document.body.appendChild(modal); $("#closeStaffModal", modal).onclick = () => modal.remove();
+    document.body.appendChild(modal); bindPasswordToggles(modal); $("#closeStaffModal", modal).onclick = () => modal.remove();
     $("#staffForm", modal).addEventListener("submit", async (e) => { e.preventDefault(); const fd = new FormData(e.target); const body = { name: fd.get("name"), role: fd.get("role"), active: fd.get("active") === "on", permissions: fd.getAll("permissions") }; if (!user) { body.email = fd.get("email"); body.password = fd.get("password"); } try { await api(user ? `/users/${user.id}` : "/users", { method: user ? "PUT" : "POST", body }); modal.remove(); loadStaff(); } catch (err) { showAlert($(".modal-box", modal), err.message, "danger"); } });
   }
 
   function editStaff(id) { const user = (window._staffUsers || []).find((u) => u.id === id); if (user) openStaffModal(user); }
   async function deleteStaff(id) { if (!confirm("Delete this staff user? They will no longer be able to sign in.")) return; try { await api(`/users/${id}`, { method: "DELETE" }); loadStaff(); } catch (err) { alert(err.message); } }
+  async function resetStaffPassword(id) { const password = prompt("Enter a new temporary password (8–128 characters):"); if (password === null) return; if (password.length < 8 || password.length > 128) return alert("Password must be between 8 and 128 characters."); try { await api(`/users/${id}/password`, { method: "PUT", body: { password } }); alert("Staff password updated. Share it securely with the user."); loadStaff(); } catch (err) { alert(err.message); } }
 
   function esc(str) {
     if (!str) return "";
@@ -696,9 +715,10 @@
   }
 
   // ---- Init ----
-  window.AdminApp = { navigate, editDoc, deleteDoc, viewDoc, viewContact, deleteContact, editStaff, deleteStaff };
+  window.AdminApp = { navigate, editDoc, deleteDoc, viewDoc, viewContact, deleteContact, editStaff, deleteStaff, resetStaffPassword };
 
   document.addEventListener("DOMContentLoaded", async () => {
+    bindPasswordToggles();
     $("#loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = $("#loginEmail").value;

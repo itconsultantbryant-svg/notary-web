@@ -77,4 +77,19 @@ router.put("/password", authMiddleware, async (req, res) => {
   }
 });
 
+// Staff can request a password reset; an administrator sets the replacement password.
+router.post("/password-request", authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb();
+    const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.user.id]);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (user.password_reset_requested_at) return res.status(409).json({ error: "A password change request is already pending" });
+    await db.run("UPDATE admin_users SET password_reset_requested_at = ? WHERE id = ?", [new Date().toISOString(), req.user.id]);
+    res.json({ ok: true, message: "Your password change request has been sent to the administrator" });
+  } catch (err) {
+    console.error("Password request error:", err);
+    res.status(500).json({ error: "Failed to submit password change request" });
+  }
+});
+
 module.exports = router;

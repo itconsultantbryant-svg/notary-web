@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS admin_users (
   role VARCHAR(50) NOT NULL DEFAULT 'administrator',
   permissions TEXT,
   active BOOLEAN NOT NULL DEFAULT TRUE,
+  password_reset_requested_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(50) NOT NULL DEFAULT 'administrator';
 ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS permissions TEXT;
 ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS documents (
   id SERIAL PRIMARY KEY,

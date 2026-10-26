@@ -58,6 +58,21 @@ router.put("/:id", async (req, res) => {
   } catch (err) { console.error("Update user error:", err); res.status(500).json({ error: "Failed to update staff user" }); }
 });
 
+router.put("/:id/password", async (req, res) => {
+  try {
+    if (!/^\d+$/.test(req.params.id)) return res.status(400).json({ error: "Invalid user ID" });
+    const password = req.body?.password;
+    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) return res.status(400).json({ error: "Password must be between 8 and 128 characters" });
+    const db = await getDb();
+    const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.params.id]);
+    if (!user) return res.status(404).json({ error: "Staff user not found" });
+    if ((user.role || "administrator") === "administrator") return res.status(403).json({ error: "Use Settings to change an administrator password" });
+    const hash = await bcrypt.hash(password, 12);
+    await db.run("UPDATE admin_users SET password_hash = ?, password_reset_requested_at = ? WHERE id = ?", [hash, null, req.params.id]);
+    res.json({ ok: true, message: "Staff password updated" });
+  } catch (err) { console.error("Reset staff password error:", err); res.status(500).json({ error: "Failed to update staff password" }); }
+});
+
 router.delete("/:id", async (req, res) => {
   try {
     const db = await getDb(); const user = await db.get("SELECT * FROM admin_users WHERE id = ?", [req.params.id]);

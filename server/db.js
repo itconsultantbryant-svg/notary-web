@@ -33,7 +33,7 @@ function loadStore() {
   if (!data.page_views) data.page_views = [];
   if (!data.verification_logs) data.verification_logs = [];
   if (!data.admin_users) data.admin_users = [];
-  data.admin_users.forEach((user) => { if (!user.role) user.role = "administrator"; if (user.active === undefined) user.active = true; });
+  data.admin_users.forEach((user) => { if (!user.role) user.role = "administrator"; if (user.active === undefined) user.active = true; if (user.password_reset_requested_at === undefined) user.password_reset_requested_at = null; });
   data._seq = { ...defaults._seq, ...(data._seq || {}) };
   return data;
 }
@@ -282,6 +282,7 @@ function initJsonStore() {
         if (row) {
           if (t.includes("PASSWORD_HASH")) row.password_hash = params[0];
           if (t.includes("NAME =")) { row.name = params[0]; row.role = params[1]; row.permissions = params[2]; row.active = Boolean(params[3]); }
+          if (t.includes("PASSWORD_RESET_REQUESTED_AT")) row.password_reset_requested_at = params[t.includes("PASSWORD_HASH") ? 1 : 0] || null;
         }
       } else if (t.startsWith("DELETE FROM ADMIN_USERS")) {
         store.admin_users = store.admin_users.filter((u) => String(u.id) !== String(params[0]));

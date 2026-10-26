@@ -17,7 +17,7 @@ function permissionsFor(user) {
 }
 
 function publicUser(user) {
-  return { id: user.id, email: user.email, name: user.name, role: user.role || "administrator", permissions: permissionsFor(user), active: user.active !== false && user.active !== 0, created_at: user.created_at };
+  return { id: user.id, email: user.email, name: user.name, role: user.role || "administrator", permissions: permissionsFor(user), active: user.active !== false && user.active !== 0, password_reset_requested_at: user.password_reset_requested_at || null, created_at: user.created_at };
 }
 
 module.exports = { PERMISSIONS, ROLE_PERMISSIONS, permissionsFor, publicUser };
